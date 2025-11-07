@@ -124,3 +124,10 @@ nomai-backend/
 | **Python 3.13+** | Core backend language            |
 
 ---
+
+
+
+
+## License
+
+Andi Mandi Sandi Jo project copy karega without forking wow hai ________ ( baki aap samajdar ho) :)
