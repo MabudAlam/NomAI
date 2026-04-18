@@ -124,6 +124,10 @@ dependencies = [
     "langchain-google-genai>=4.2.2",
     "langsmith[claude-agent-sdk]>=0.7.25",
     "langchain-exa>=1.1.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "langchain-openrouter>=0.2.1",
+    "openrouter>=0.9.1",
 ]
 
 [build-system]

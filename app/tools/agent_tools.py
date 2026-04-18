@@ -1,7 +1,7 @@
 from pydantic_ai import Agent, RunContext
 from app.models.nutrition_input_payload import NutritionInputPayload
 from app.models.service_response import NutritionServiceResponse
-from app.services.nutrition_service import NutritionService
+from app.services.nutrition_service_v2 import NutritionServiceV2
 
 
 def create_agent_tools(agent: Agent, user_context=None):
@@ -40,7 +40,7 @@ def create_agent_tools(agent: Agent, user_context=None):
             imageData=None,  # No image data from chat
         )
 
-        result = NutritionService.log_food_nutrition_data_using_description(
+        result = NutritionServiceV2.log_food_nutrition_data_using_description(
             nutrition_data
         )
         return result
@@ -57,7 +57,7 @@ def create_agent_tools(agent: Agent, user_context=None):
             query: NutritionInputPayload containing image URL and other parameters
         """
 
-        result = NutritionService.get_nutrition_data(query=query)
+        result = NutritionServiceV2.get_nutrition_data(query=query)
         return result
 
     return [

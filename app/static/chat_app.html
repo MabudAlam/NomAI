@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NomAI - Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       * { font-family: 'Inter', sans-serif; }
@@ -162,6 +163,7 @@
           this.isTyping = false;
           this.currentAssistantMessage = null;
           this.profile = { dietary_preferences: [], allergies: [], selected_goals: [] };
+          this.chatHistory = [];
 
           this.init();
         }
@@ -219,8 +221,11 @@
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             this.messages.innerHTML = '';
+            this.chatHistory = [];
             for (const msg of data.messages || []) {
-              this.addMessage({ role: msg.role, content: msg.text || msg.content || '' });
+              const msgData = { role: msg.role, content: msg.text || msg.content || '' };
+              this.chatHistory.push(msgData);
+              this.addMessage(msgData);
             }
           } catch (err) { this.addMessage({ role: 'system', content: `Error: ${err.message}` }); }
         }
@@ -234,7 +239,9 @@
           const imageUrl = this.imageUrlInput.value.trim() || null;
           const currentProfile = this.getCurrentProfile();
 
-          this.addMessage({ role: 'user', content: message || '[Image URL provided]' });
+          const userMsg = { role: 'user', content: message || '[Image URL provided]' };
+          this.addMessage(userMsg);
+          this.chatHistory.push(userMsg);
           this.messageInput.value = '';
           this.setTyping(true);
           this.currentAssistantMessage = null;
@@ -243,7 +250,7 @@
             const res = await fetch(`${this.apiBase}/message`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: message, user_id: userId, image_url: imageUrl, image_data: null, local_time: new Date().toISOString(), ...currentProfile })
+              body: JSON.stringify({ text: message, user_id: userId, image_url: imageUrl, image_data: null, local_time: new Date().toISOString(), ...currentProfile, history: this.chatHistory.slice(0, -1) })
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             await this.processResponse(await res.json());
@@ -253,7 +260,8 @@
 
         async processResponse(data) {
           if (data.ai_answer) {
-            this.currentAssistantMessage = { role: 'assistant', content: data.ai_answer, tool_response: data.tool_response };
+            this.currentAssistantMessage = { role: 'assistant', content: data.ai_answer, nutrition_data: data.nutrition_data, tools_used: data.tools_used };
+            this.chatHistory.push({ role: 'assistant', content: data.ai_answer });
             this.addMessage(this.currentAssistantMessage);
           }
           if (data.error) { this.addMessage({ role: 'system', content: `Error: ${data.error}` }); }
@@ -262,6 +270,8 @@
         addMessage(data) {
           const div = document.createElement('div');
           div.className = `flex ${data.role === 'user' ? 'justify-end' : 'justify-start'}`;
+          div.dataset.role = data.role;
+          div.dataset.content = typeof data.content === 'string' ? data.content : (data.content?.message || '');
 
           if (data.role === 'user') {
             div.innerHTML = `<div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-3 rounded-2xl rounded-br-md max-w-[85%] shadow-lg"><p class="text-sm">${this.escapeHtml(data.content)}</p></div>`;
@@ -270,15 +280,19 @@
           } else {
             const bubble = document.createElement('div');
             bubble.className = 'bg-white px-5 py-4 rounded-2xl rounded-bl-md shadow-lg max-w-[85%] w-full';
-            
+
             let contentText = typeof data.content === 'string' ? data.content : (data.content?.message || '');
-            let html = contentText ? `<div class="text-sm leading-relaxed mb-4">${contentText}</div>` : '';
-            
-            if (data.tool_response) {
-              const nutrition = data.tool_response.response || data.tool_response;
-              html += this.renderNutritionCard(nutrition, data.tool_response.metadata);
+            let html = '';
+            if (contentText) {
+              const renderedMarkdown = marked.parse(contentText);
+              html = `<div class="text-sm leading-relaxed mb-4">${renderedMarkdown}</div>`;
             }
-            
+
+            if (data.nutrition_data) {
+              const nutrition = data.nutrition_data.response || data.nutrition_data;
+              html += this.renderNutritionCard(nutrition);
+            }
+
             bubble.innerHTML = html;
             div.appendChild(bubble);
             data._element = div;
@@ -289,7 +303,7 @@
           return div;
         }
 
-        renderNutritionCard(nutrition, metadata) {
+        renderNutritionCard(nutrition) {
           const foodName = nutrition.foodName || 'Unknown Food';
           const healthScore = nutrition.overallHealthScore || 0;
           const portionSize = nutrition.portionSize || 0;
@@ -401,14 +415,6 @@
                   </div>
                 `).join('')}
               </div>
-            </div>
-            ` : ''}
-
-            <!-- Metadata -->
-            ${metadata ? `
-            <div class="px-4 py-2 bg-gray-50 border-t border-gray-100 text-[10px] text-gray-400">
-              ${metadata.execution_time_seconds ? `Analysis time: ${metadata.execution_time_seconds.toFixed(1)}s` : ''}
-              ${metadata.estimated_cost ? ` • Cost: $${metadata.estimated_cost.toFixed(5)}` : ''}
             </div>
             ` : ''}
           </div>`;

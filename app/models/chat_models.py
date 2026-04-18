@@ -6,7 +6,7 @@ from typing_extensions import TypedDict
 class ChatMessage(TypedDict):
     """Simplified format of chat messages stored in Firestore."""
 
-    role: Literal["user", "model"]
+    role: Literal["user", "model", "assistant"]
     text: str
     sources: Optional[Dict[str, Any]]
     timestamp: str
@@ -23,6 +23,7 @@ class SendMessageRequest(BaseModel):
     selected_goals: Optional[List[str]] = None
     image_url: Optional[str] = None
     image_data: Optional[str] = None
+    history: Optional[List[Dict[str, Any]]] = None
 
 
 class GetMessagesResponse(TypedDict):

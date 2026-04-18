@@ -1,10 +1,12 @@
+import os
 from typing import Optional
 
 from langchain.tools import tool
-from langgraph.prebuilt import ToolNode
 from app.models.nutrition_input_payload import NutritionInputPayload
 from app.models.service_response import NutritionServiceResponse
-from app.services.nutrition_service import NutritionService
+from app.services.nutrition_service_v2 import NutritionServiceV2, LLMProviderType
+
+DEFAULT_PROVIDER = os.getenv("PROVIDER_TYPE", "gemini").lower()
 
 
 @tool
@@ -36,6 +38,8 @@ def analyse_image(
             "Either image_url or image_data must be provided for image analysis"
         )
 
+    provider = LLMProviderType.GEMINI if DEFAULT_PROVIDER == "gemini" else LLMProviderType.OPENROUTER
+
     payload = NutritionInputPayload(
         imageData=image_data,
         imageUrl=image_url,
@@ -45,7 +49,7 @@ def analyse_image(
         selectedGoals=selected_goals or [],
     )
 
-    response = NutritionService.get_nutrition_data(query=payload)
+    response = NutritionServiceV2.get_nutrition_data(query=payload, provider_type=provider)
     return response.model_dump() if hasattr(response, "model_dump") else response
 
 
@@ -57,22 +61,27 @@ def analyse_food_description(
     dietary_preferences: Optional[list[str]] = None,
     allergies: Optional[list[str]] = None,
     selected_goals: Optional[list[str]] = None,
-    exa_results: Optional[list[dict]] = None,
 ) -> dict:
     """
     Analyze food from text description to extract nutrition information. Use this tool when user describes food in text format (no image).
 
+    IMPORTANT: You MUST include the user's profile context in every call:
+    - Always pass dietary_preferences, allergies, and selected_goals from the user's profile
+    - If the user says "I had maggie", include: dietary_preferences=["vegetarian"], allergies=["nuts"], selected_goals=["weight-loss"]
+    - If you don't have the user's profile, make reasonable assumptions based on common preferences
+
+    Never call this tool with only food_description alone. Always include the user's dietary context.
+
     Args:
-        food_description: Description of the food item (required)
-        image_data: Base64 encoded image data (optional - for combined analysis)
-        image_url: URL of an image (optional - for combined analysis)
-        dietary_preferences: User's dietary preferences
-        allergies: User's food allergies
-        selected_goals: User's health goals
-        exa_results: Optional web search results from EXA for enhanced analysis
+        food_description: Description of the food item (e.g., "2 maggie noodles with veggies")
+        dietary_preferences: User's dietary preferences (vegan, vegetarian, low-carb, etc.)
+        allergies: User's food allergies (nuts, dairy, gluten, etc.)
+        selected_goals: User's health goals (weight-loss, muscle-gain, maintenance, etc.)
     Returns:
         dict: Structured response with nutrition data
     """
+    provider = LLMProviderType.GEMINI if DEFAULT_PROVIDER == "gemini" else LLMProviderType.OPENROUTER
+
     payload = NutritionInputPayload(
         food_description=food_description,
         imageData=image_data,
@@ -82,7 +91,5 @@ def analyse_food_description(
         selectedGoals=selected_goals or [],
     )
 
-    response = NutritionService.log_food_nutrition_data_using_description(
-        payload, exa_results=exa_results
-    )
+    response = NutritionServiceV2.log_food_nutrition_data_using_description(payload, provider_type=provider)
     return response.model_dump() if hasattr(response, "model_dump") else response

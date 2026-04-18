@@ -3,7 +3,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from app.models.nutrition_input_payload import NutritionInputPayload
-from app.services.nutrition_service import NutritionService
+from app.services.nutrition_service_v2 import NutritionServiceV2
 from app.models.service_response import NutritionServiceResponse, ErrorResponse
 from app.exceptions import BaseNomAIException, ValidationException
 from app.utils.error_handler import ErrorHandler
@@ -40,7 +40,7 @@ def generate_nutrition_info(query: NutritionInputPayload, request: Request):
                 suggestion="Please provide a valid base64 encoded image",
             )
 
-        response = NutritionService.get_nutrition_data(
+        response = NutritionServiceV2.get_nutrition_data(
             query=query,
         )
 
@@ -98,7 +98,7 @@ def generate_nutrition_info_from_description(
                 suggestion="Please provide a valid description of the food items",
             )
 
-        response = NutritionService.log_food_nutrition_data_using_description(query)
+        response = NutritionServiceV2.log_food_nutrition_data_using_description(query)
 
         return JSONResponse(content=response.to_dict(), status_code=response.status)
 
