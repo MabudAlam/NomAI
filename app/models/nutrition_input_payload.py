@@ -7,12 +7,14 @@ class NutritionInputPayload(BaseModel):
     Represents the input payload for nutrition data.
     """
 
-    imageData: Optional[str] = Field(None, description="Base64 encoded image data")
-    imageUrl: Optional[str] = (
-        Field(None, description="URL of the image for nutrition analysis"),
+    imageData: Optional[str] = Field(
+        default=None, description="Base64 encoded image data"
+    )
+    imageUrl: Optional[str] = Field(
+        default=None, description="URL of the image for nutrition analysis"
     )
     food_description: Optional[str] = Field(
-        ..., description="Description of the food item"
+        default=None, description="Description of the food item"
     )
     dietaryPreferences: List[str] = Field(
         default_factory=list, description="User's dietary preferences"
