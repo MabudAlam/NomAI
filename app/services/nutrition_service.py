@@ -87,7 +87,6 @@ class NutritionService:
         start_time = time.time()
 
         try:
-
             try:
                 prompt = PromptService.get_nutrition_analysis_prompt_for_image(
                     user_message=query.food_description,
@@ -210,8 +209,43 @@ class NutritionService:
             )
 
     @staticmethod
+    def _build_web_context(exa_results: list) -> str:
+        """Build web research context string from EXA search results."""
+        if not exa_results:
+            return ""
+
+        context_parts = ["WEB RESEARCH RESULTS:"]
+        for exa_result in exa_results:
+            if isinstance(exa_result, dict):
+                context_parts.append(
+                    f"\nSearch Query: {exa_result.get('query_used', 'unknown')}"
+                )
+                results = exa_result.get("results", [])
+                for r in results:
+                    title = r.get("title", "")
+                    snippet = r.get("snippet", "")
+                    url = r.get("url", "")
+                    if title:
+                        context_parts.append(f"- {title}: {snippet}")
+                        if url:
+                            context_parts.append(f"  Source: {url}")
+            elif hasattr(exa_result, "query_used"):
+                context_parts.append(f"\nSearch Query: {exa_result.query_used}")
+                for r in exa_result.results or []:
+                    title = getattr(r, "title", "")
+                    snippet = getattr(r, "snippet", "")
+                    url = getattr(r, "url", "")
+                    if title:
+                        context_parts.append(f"- {title}: {snippet}")
+                        if url:
+                            context_parts.append(f"  Source: {url}")
+
+        return "\n".join(context_parts)
+
+    @staticmethod
     def log_food_nutrition_data_using_description(
         payload: NutritionInputPayload,
+        exa_results: list = None,
     ) -> NutritionServiceResponse:
         """
         Log food nutrition data using a description with proper error handling.
@@ -226,13 +260,14 @@ class NutritionService:
         start_time = time.time()
 
         try:
-
             try:
+                web_context = NutritionService._build_web_context(exa_results or [])
                 prompt = PromptService.get_nutrition_analysis_prompt_from_description(
                     user_message=payload.food_description,
                     selectedGoal=payload.selectedGoals,
                     selectedDiet=payload.dietaryPreferences,
                     selectedAllergy=payload.allergies,
+                    web_research_context=web_context if web_context else None,
                 )
             except Exception as e:
                 raise BusinessLogicException(

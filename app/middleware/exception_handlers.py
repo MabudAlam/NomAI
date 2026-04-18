@@ -2,9 +2,11 @@ import traceback
 import uuid
 from typing import Union, Dict, Any
 from datetime import datetime
+import logging
 
-import logfire
 from fastapi import FastAPI, Request, HTTPException
+
+logger = logging.getLogger(__name__)
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
@@ -90,11 +92,11 @@ async def nomai_exception_handler(
     }
 
     if severity in [ErrorSeverity.HIGH, ErrorSeverity.CRITICAL]:
-        logfire.error("NomAI Exception", **log_data)
+        logger.error("NomAI Exception", extra=log_data)
     elif severity == ErrorSeverity.MEDIUM:
-        logfire.warn("NomAI Exception", **log_data)
+        logger.warning("NomAI Exception", extra=log_data)
     else:
-        logfire.info("NomAI Exception", **log_data)
+        logger.info("NomAI Exception", extra=log_data)
 
     if isinstance(exc, ValidationException):
         error_response = ValidationErrorResponse(
@@ -166,11 +168,13 @@ async def validation_exception_handler(
         additional_context={"raw_errors": exc.errors()},
     )
 
-    logfire.info(
+    logger.info(
         "Validation Error",
-        error_count=len(validation_errors),
-        request_id=request_id,
-        endpoint=str(request.url.path),
+        extra={
+            "error_count": len(validation_errors),
+            "request_id": request_id,
+            "endpoint": str(request.url.path),
+        },
     )
 
     error_response = ValidationErrorResponse(
@@ -216,12 +220,14 @@ async def http_exception_handler(
         request_id=request_id,
     )
 
-    logfire.warn(
+    logger.warning(
         "HTTP Exception",
-        status_code=exc.status_code,
-        message=str(exc.detail),
-        request_id=request_id,
-        endpoint=str(request.url.path),
+        extra={
+            "status_code": exc.status_code,
+            "error_message": str(exc.detail),
+            "request_id": request_id,
+            "endpoint": str(request.url.path),
+        },
     )
 
     error_response = StandardErrorResponse(
@@ -252,13 +258,15 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
         additional_context={"exception_type": exc.__class__.__name__},
     )
 
-    logfire.error(
+    logger.error(
         "Unexpected Exception",
-        exception_type=exc.__class__.__name__,
-        message=str(exc),
-        request_id=request_id,
-        endpoint=str(request.url.path),
-        stack_trace=traceback.format_exc(),
+        extra={
+            "exception_type": exc.__class__.__name__,
+            "message": str(exc),
+            "request_id": request_id,
+            "endpoint": str(request.url.path),
+            "stack_trace": traceback.format_exc(),
+        },
     )
 
     is_dev = get_env_variable_safe("PROD", "false").lower() != "true"
@@ -292,6 +300,6 @@ def setup_exception_handlers(app: FastAPI) -> FastAPI:
 
     app.add_exception_handler(Exception, general_exception_handler)
 
-    logfire.info("Exception handlers configured successfully")
+    logger.info("Exception handlers configured successfully")
 
     return app

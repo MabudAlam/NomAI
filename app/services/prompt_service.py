@@ -194,6 +194,7 @@ User message: {user_message}
         selectedGoal: list = None,
         selectedDiet: list = None,
         selectedAllergy: list = None,
+        web_research_context: str = None,
     ) -> str:
         """Generate the complete nutrition analysis prompt from a description."""
         dietary_context = PromptService.get_dietary_context(
@@ -202,6 +203,15 @@ User message: {user_message}
         user_message_instruction = PromptService.get_user_message_instruction(
             user_message
         )
+
+        web_context_section = ""
+        if web_research_context:
+            web_context_section = f"""
+WEB RESEARCH CONTEXT:
+{web_research_context}
+
+Use the above web research to verify and enhance nutritional data accuracy. Cross-reference with official sources where possible.
+"""
 
         return f"""
 NUTRITION ANALYSIS TASK:
