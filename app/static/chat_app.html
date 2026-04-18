@@ -3,1626 +3,437 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NomAI - Advanced Nutrition Assistant</title>
-    <!-- Material Icons -->
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <title>NomAI - Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-      :root {
-        --primary-color: #6366f1;
-        --primary-hover: #4f46e5;
-        --primary-light: #e0e7ff;
-        --success-color: #10b981;
-        --success-light: #d1fae5;
-        --warning-color: #f59e0b;
-        --warning-light: #fef3c7;
-        --danger-color: #ef4444;
-        --danger-light: #fee2e2;
-        --background: #fafafa;
-        --surface: #ffffff;
-        --surface-elevated: #ffffff;
-        --text-primary: #111827;
-        --text-secondary: #6b7280;
-        --text-muted: #9ca3af;
-        --border: #e5e7eb;
-        --border-light: #f3f4f6;
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        --border-radius: 16px;
-        --border-radius-sm: 8px;
-        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --gradient-success: linear-gradient(135deg, #10b981 0%, #047857 100%);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: var(--gradient-primary);
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 1rem;
-        font-weight: 400;
-      }
-
-      .chat-container {
-        width: 100%;
-        max-width: 900px;
-        height: 95vh;
-        background: var(--surface);
-        border-radius: 24px;
-        box-shadow: var(--shadow-lg);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--border-light);
-      }
-
-      .chat-header {
-        background: var(--gradient-success);
-        color: white;
-        padding: 2rem 1.5rem 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .chat-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='20' cy='20' r='4'/%3E%3Ccircle cx='40' cy='40' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
-          repeat;
-      }
-
-      .header-left {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        position: relative;
-        z-index: 1;
-      }
-
-      .logo {
-        width: 56px;
-        height: 56px;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-      }
-
-      .header-info h1 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-        letter-spacing: -0.025em;
-      }
-
-      .header-info p {
-        font-size: 0.875rem;
-        opacity: 0.9;
-        font-weight: 400;
-      }
-
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        background: rgba(255, 255, 255, 0.15);
-        padding: 0.75rem 1.25rem;
-        border-radius: 50px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        position: relative;
-        z-index: 1;
-        transition: var(--transition);
-      }
-
-      .user-info:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(-1px);
-      }
-
-      .user-icon {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: var(--gradient-primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 14px;
-      }
-
-      .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 2rem;
-        background: var(--background);
-        scroll-behavior: smooth;
-        position: relative;
-      }
-
-      .message {
-        margin-bottom: 2rem;
-        animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-      }
-
-      @keyframes slideInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .message.user {
-        align-items: flex-end;
-      }
-
-      .message.model {
-        align-items: flex-start;
-      }
-
-      .message-wrapper {
-        max-width: 75%;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-      }
-
-      .message-content {
-        padding: 1.25rem 1.5rem;
-        border-radius: var(--border-radius);
-        word-wrap: break-word;
-        line-height: 1.6;
-        font-size: 0.95rem;
-        position: relative;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid transparent;
-      }
-
-      .message.user .message-content {
-        background: var(--primary-color);
-        color: white;
-        border-bottom-right-radius: 4px;
-        font-weight: 500;
-      }
-
-      .message.model .message-content {
-        background: var(--surface);
-        color: var(--text-primary);
-        border: 1px solid var(--border);
-        border-bottom-left-radius: 4px;
-      }
-
-      .message-timestamp {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        margin-top: 0.5rem;
-        font-weight: 400;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .message.user .message-timestamp {
-        align-self: flex-end;
-        text-align: right;
-      }
-
-      .message.model .message-timestamp {
-        align-self: flex-start;
-        text-align: left;
-      }
-
-      .status-indicator {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--success-color);
-        display: inline-block;
-      }
-
-      .message.system {
-        align-items: center;
-        margin: 1rem 0;
-      }
-
-      .message.system .message-wrapper {
-        max-width: 60%;
-      }
-
-      .message.system .message-content {
-        background: var(--surface-elevated);
-        color: var(--text-secondary);
-        border: 1px solid var(--border);
-        border-radius: 50px;
-        padding: 0.75rem 1.25rem;
-        font-size: 0.875rem;
-        font-style: italic;
-        text-align: center;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .tooltip {
-        position: relative;
-        cursor: help;
-      }
-
-      .tooltip::before {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.9);
-        color: white;
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        white-space: nowrap;
-        opacity: 0;
-        visibility: hidden;
-        transition: var(--transition);
-        z-index: 1000;
-      }
-
-      .tooltip::after {
-        content: '';
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%) translateY(100%);
-        width: 0;
-        height: 0;
-        border-left: 4px solid transparent;
-        border-right: 4px solid transparent;
-        border-top: 4px solid rgba(0, 0, 0, 0.9);
-        opacity: 0;
-        visibility: hidden;
-        transition: var(--transition);
-      }
-
-      .tooltip:hover::before,
-      .tooltip:hover::after {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(-50%) translateY(-8px);
-      }
-
-      .nutrition-info {
-        background: var(--surface);
-        border: 2px solid var(--success-light);
-        border-radius: var(--border-radius);
-        padding: 1.5rem;
-        margin-top: 1rem;
-        box-shadow: var(--shadow-sm);
-        position: relative;
-      }
-
-      .nutrition-info::before {
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: -1px;
-        right: -1px;
-        height: 4px;
-        background: var(--gradient-success);
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
-      }
-
-      .nutrition-section {
-        margin-bottom: 1.5rem;
-      }
-
-      .nutrition-section:last-child {
-        margin-bottom: 0;
-      }
-
-      .nutrition-section h4 {
-        color: var(--text-primary);
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
-      .section-icon {
-        width: 24px;
-        height: 24px;
-        border-radius: 8px;
-        background: var(--primary-light);
-        color: var(--primary-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-      }
-
-      .nutrition-item {
-        background: var(--background);
-        padding: 1.25rem;
-        margin: 0.75rem 0;
-        border-radius: var(--border-radius-sm);
-        border-left: 4px solid var(--success-color);
-        transition: var(--transition);
-        border: 1px solid var(--border-light);
-      }
-
-      .nutrition-item:hover {
-        transform: translateX(4px);
-        box-shadow: var(--shadow);
-        background: var(--surface);
-      }
-
-      .health-score {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: var(--success-color);
-        color: white;
-        padding: 0.375rem 0.875rem;
-        border-radius: 50px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-left: 0.75rem;
-        transition: var(--transition);
-      }
-
-      .health-score.low {
-        background: var(--danger-color);
-      }
-
-      .health-score.medium {
-        background: var(--warning-color);
-        color: var(--text-primary);
-      }
-
-      .health-score-icon {
-        font-size: 16px;
-      }
-
-      .chat-input {
-        padding: 1.5rem;
-        background: var(--surface);
-        border-top: 1px solid var(--border);
-        backdrop-filter: blur(20px);
-      }
-
-      .input-container {
-        display: flex;
-        gap: 1rem;
-        align-items: flex-end;
-        position: relative;
-      }
-
-      .input-field-wrapper {
-        flex: 1;
-        position: relative;
-      }
-
-      .user-id-input {
-        width: 140px;
-        padding: 0.875rem 1.25rem;
-        border: 2px solid var(--border);
-        border-radius: 50px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        outline: none;
-        transition: var(--transition);
-        background: var(--surface);
-        color: var(--text-primary);
-      }
-
-      .user-id-input:focus {
-        border-color: var(--primary-color);
-        background: var(--surface);
-        box-shadow: 0 0 0 3px var(--primary-light);
-      }
-
-      .input-field {
-        width: 100%;
-        padding: 1rem 1.5rem 1rem 3rem;
-        border: 2px solid var(--border);
-        border-radius: 24px;
-        font-size: 1rem;
-        outline: none;
-        resize: none;
-        min-height: 56px;
-        max-height: 120px;
-        font-family: inherit;
-        transition: var(--transition);
-        background: var(--surface);
-        color: var(--text-primary);
-        line-height: 1.5;
-      }
-
-      .input-field:focus {
-        border-color: var(--primary-color);
-        background: var(--surface);
-        box-shadow: 0 0 0 3px var(--primary-light);
-      }
-
-      .input-field::placeholder {
-        color: var(--text-muted);
-      }
-
-      .input-icon {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        font-size: 20px;
-        transition: var(--transition);
-        z-index: 1;
-      }
-
-      .input-field:focus + .input-icon {
-        color: var(--primary-color);
-      }
-
-      .send-button {
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 56px;
-        height: 56px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: var(--transition);
-        font-size: 24px;
-        box-shadow: var(--shadow);
-        flex-shrink: 0;
-      }
-
-      .send-button:hover:not(:disabled) {
-        background: var(--primary-hover);
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: var(--shadow-lg);
-      }
-
-      .send-button:disabled {
-        background: var(--text-muted);
-        cursor: not-allowed;
-        transform: none;
-        opacity: 0.6;
-      }
-
-      .send-button:active:not(:disabled) {
-        transform: translateY(0) scale(0.95);
-      }
-
-      .typing-indicator {
-        display: flex;
-        align-items: center;
-        color: var(--text-secondary);
-        font-style: italic;
-        margin: 1.5rem 0;
-        padding: 1.25rem;
-        background: var(--surface);
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow-sm);
-        gap: 0.75rem;
-      }
-
-      .typing-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: var(--gradient-success);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 18px;
-        flex-shrink: 0;
-      }
-
-      .typing-dots {
-        display: inline-flex;
-        margin-left: 0.5rem;
-      }
-
-      .typing-dots span {
-        width: 8px;
-        height: 8px;
-        background: var(--primary-color);
-        border-radius: 50%;
-        margin: 0 2px;
-        animation: typing 1.4s infinite ease-in-out;
-      }
-
-      .typing-dots span:nth-child(2) {
-        animation-delay: 0.2s;
-      }
-
-      .typing-dots span:nth-child(3) {
-        animation-delay: 0.4s;
-      }
-
-      @keyframes typing {
-        0%,
-        60%,
-        100% {
-          transform: scale(0.8);
-          opacity: 0.5;
-        }
-        30% {
-          transform: scale(1.2);
-          opacity: 1;
-        }
-      }
-
-      .error-message {
-        background: var(--danger-light);
-        color: var(--danger-color);
-        padding: 1.25rem;
-        border-radius: var(--border-radius);
-        margin: 1.5rem 0;
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .error-icon {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: var(--danger-color);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        flex-shrink: 0;
-      }
-
-      .chat-messages::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      .chat-messages::-webkit-scrollbar-track {
-        background: transparent;
-      }
-
-      .chat-messages::-webkit-scrollbar-thumb {
-        background: var(--text-muted);
-        border-radius: 3px;
-        transition: var(--transition);
-      }
-
-      .chat-messages::-webkit-scrollbar-thumb:hover {
-        background: var(--text-secondary);
-      }
-
-      .nutrition-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-      }
-
-      .nutrition-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--border-radius-sm);
-        padding: 1.25rem;
-        text-align: center;
-        transition: var(--transition);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .nutrition-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow);
-        border-color: var(--primary-color);
-      }
-
-      .nutrition-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--gradient-primary);
-        transform: scaleX(0);
-        transition: var(--transition);
-      }
-
-      .nutrition-card:hover::before {
-        transform: scaleX(1);
-      }
-
-      .nutrition-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--primary-color);
-        margin-bottom: 0.25rem;
-      }
-
-      .nutrition-label {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-
-      /* Modern button styles */
-      .action-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 50px;
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: var(--transition);
-        cursor: pointer;
-      }
-
-      .action-button:hover {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-sm);
-      }
-
-      /* Loading states */
-      .loading-skeleton {
-        background: linear-gradient(
-          90deg,
-          var(--border-light) 25%,
-          var(--border) 50%,
-          var(--border-light) 75%
-        );
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-        border-radius: var(--border-radius-sm);
-      }
-
-      @keyframes loading {
-        0% {
-          background-position: 200% 0;
-        }
-        100% {
-          background-position: -200% 0;
-        }
-      }
-
-      /* Responsive design improvements */
-      @media (max-width: 768px) {
-        .chat-container {
-          width: 100%;
-          height: 100vh;
-          border-radius: 0;
-          max-width: none;
-        }
-
-        .chat-header {
-          padding: 1.5rem 1rem 1rem;
-        }
-
-        .header-left {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 0.75rem;
-        }
-
-        .user-info {
-          order: -1;
-          align-self: flex-end;
-          padding: 0.5rem 1rem;
-          font-size: 0.8rem;
-        }
-
-        .chat-messages {
-          padding: 1rem;
-        }
-
-        .message-wrapper {
-          max-width: 85%;
-        }
-
-        .input-container {
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .user-id-input {
-          width: 100%;
-        }
-
-        .nutrition-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 0.75rem;
-        }
-
-        .nutrition-card {
-          padding: 1rem;
-        }
-
-        .nutrition-value {
-          font-size: 1.5rem;
-        }
-
-        .send-button {
-          width: 48px;
-          height: 48px;
-          font-size: 20px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .chat-messages {
-          padding: 0.75rem;
-        }
-
-        .message-wrapper {
-          max-width: 92%;
-        }
-
-        .nutrition-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* Dark mode support (optional) */
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --background: #0f172a;
-          --surface: #1e293b;
-          --surface-elevated: #334155;
-          --text-primary: #f1f5f9;
-          --text-secondary: #94a3b8;
-          --text-muted: #64748b;
-          --border: #334155;
-          --border-light: #1e293b;
-        }
-      }
-
-      /* Accessibility improvements */
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
-      }
-
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
-
-      /* Tool call and tool return styling */
-      .tool-section {
-        margin: 1rem 0;
-        padding: 1rem;
-        background: var(--surface-elevated);
-        border-radius: var(--border-radius-sm);
-        border-left: 4px solid var(--primary-color);
-      }
-
-      .tool-section strong {
-        color: var(--primary-color);
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-      }
-
-      .tool-return-code {
-        background: #1e1e1e !important;
-        color: #d4d4d4 !important;
-        padding: 1rem !important;
-        border-radius: var(--border-radius-sm) !important;
-        white-space: pre-wrap !important;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
-        font-size: 0.85rem !important;
-        line-height: 1.5 !important;
-        border: 1px solid #333 !important;
-        margin-top: 0.5rem !important;
-        overflow-x: auto !important;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-      }
-
-      /* JSON syntax highlighting for tool returns */
-      .tool-return-code {
-        background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%) !important;
-      }
-
-      /* Dark mode tool return styling */
-      @media (prefers-color-scheme: dark) {
-        .tool-section {
-          background: #1a1a1a;
-          border-left-color: #6366f1;
-        }
-
-        .tool-return-code {
-          background: linear-gradient(135deg, #0d1117 0%, #161b22 100%) !important;
-          color: #f0f6fc !important;
-          border-color: #30363d !important;
-        }
-      }
-
-      /* Light mode alternative for better contrast */
-      .message.model .tool-return-code {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
-        color: #1e293b !important;
-        border: 1px solid #cbd5e1 !important;
-      }
-
-      /* Enhanced syntax highlighting colors */
-      .tool-return-code .json-string {
-        color: #98c379 !important;
-      }
-
-      .tool-return-code .json-number {
-        color: #d19a66 !important;
-      }
-
-      .tool-return-code .json-boolean {
-        color: #56b6c2 !important;
-      }
-
-      .tool-return-code .json-null {
-        color: #e06c75 !important;
-      }
-
-      .tool-return-code .json-key {
-        color: #e5c07b !important;
-        font-weight: bold !important;
-      }
+      * { font-family: 'Inter', sans-serif; }
+      .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+      .scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+      .message-bubble { white-space: pre-wrap; }
+      .nutrition-card { animation: fadeIn 0.3s ease-out; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      .score-ring { stroke-dasharray: 251; }
     </style>
   </head>
-  <body>
-    <div class="chat-container">
-      <div class="chat-header">
-        <div class="header-left">
-          <div class="logo">
-            <span class="material-icons-outlined">restaurant_menu</span>
+  <body class="bg-gray-50 text-gray-900 min-h-screen">
+    <div class="flex flex-col h-screen max-w-3xl mx-auto bg-white shadow-xl">
+
+      <!-- Header -->
+      <header class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+            N
           </div>
-          <div class="header-info">
-            <h1>NomAI</h1>
-            <p>Your AI Nutrition Assistant</p>
+          <div>
+            <h1 class="text-lg font-bold text-gray-900">NomAI</h1>
+            <p class="text-xs text-gray-500">Your Nutrition Assistant</p>
           </div>
         </div>
-        <div class="user-info tooltip" data-tooltip="Current user session" id="userDisplay">
-          <div class="user-icon">
-            <span class="material-icons-outlined">person</span>
+        <div class="flex items-center gap-3">
+          <button id="loadMessagesBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Load Messages">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </button>
+          <button id="settingsBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Messages Container -->
+      <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50 scrollbar-thin">
+        <!-- Messages will be inserted here -->
+      </div>
+
+      <!-- Typing Indicator -->
+      <div id="typingIndicator" class="hidden px-6 py-4 bg-gray-50">
+        <div class="flex items-center gap-3 text-sm text-gray-500">
+          <div class="flex gap-1">
+            <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+            <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+            <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
           </div>
-          <span id="currentUser">Guest</span>
+          <span>Analyzing your meal...</span>
         </div>
       </div>
-      <div class="chat-messages" id="messages"></div>
-      <div class="chat-input">
-        <div class="input-container">
-          <input
-            id="userIdInput"
-            class="user-id-input tooltip"
-            type="text"
-            placeholder="User ID"
-            value="Pavel"
-            data-tooltip="Enter your unique user ID"
-          />
-          <div class="input-field-wrapper">
-            <textarea
-              id="messageInput"
-              class="input-field"
-              placeholder="Describe your meal or ask about nutrition..."
-              rows="1"
-              aria-label="Type your nutrition question"
-            ></textarea>
-            <span class="input-icon material-icons-outlined">chat</span>
+
+      <!-- User Profile Chips -->
+      <div id="profileChips" class="px-6 py-3 border-t border-gray-100 bg-white">
+        <div class="flex flex-wrap items-center gap-4 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-500 font-medium">Diet:</span>
+            <div class="flex flex-wrap gap-1" id="dietaryChips">
+              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="vegetarian">Vegetarian</button>
+              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="vegan">Vegan</button>
+              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="low-carb">Low Carb</button>
+              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="high-protein">High Protein</button>
+            </div>
           </div>
-          <button
-            id="sendButton"
-            class="send-button tooltip"
-            data-tooltip="Send message (Enter)"
-            aria-label="Send message"
-          >
-            <span class="material-icons-outlined">send</span>
+          <div class="flex items-center gap-2">
+            <span class="text-gray-500 font-medium">Goals:</span>
+            <div class="flex flex-wrap gap-1" id="goalsChips">
+              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="weight-loss">Weight Loss</button>
+              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="muscle-gain">Muscle Gain</button>
+              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="maintenance">Maintenance</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="p-4 border-t border-gray-200 bg-white">
+        <div class="flex gap-3">
+          <input id="messageInput" type="text" placeholder="Describe your meal or paste an image URL..." class="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" />
+          <button id="sendButton" class="px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold text-sm hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            Analyze
           </button>
+        </div>
+        <div class="flex gap-3 mt-3 items-center text-xs text-gray-500">
+          <input id="userIdInput" type="text" placeholder="User ID" value="user_123" class="px-3 py-1.5 rounded-lg border border-gray-200 w-28 outline-none focus:ring-2 focus:ring-green-500" />
+          <input id="imageUrlInput" type="text" placeholder="Or paste an image URL here..." class="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 outline-none focus:ring-2 focus:ring-green-500" />
+        </div>
+      </div>
+
+      <!-- Settings Modal -->
+      <div id="settingsModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-bold">Your Profile</h2>
+            <button id="closeModal" class="p-2 rounded-lg hover:bg-gray-100">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-6">
+            <div>
+              <label class="text-sm font-semibold block mb-3">Dietary Preferences</label>
+              <div class="flex flex-wrap gap-2" id="dietaryOptions">
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="vegetarian">Vegetarian</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="vegan">Vegan</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="low-carb">Low Carb</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="high-protein">High Protein</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="keto">Keto</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="gluten-free">Gluten Free</button>
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-semibold block mb-3">Allergies</label>
+              <div class="flex flex-wrap gap-2" id="allergyOptions">
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="nuts">Nuts</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="dairy">Dairy</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="eggs">Eggs</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="soy">Soy</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="wheat">Wheat</button>
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-semibold block mb-3">Health Goals</label>
+              <div class="flex flex-wrap gap-2" id="goalsOptions">
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="weight-loss">Weight Loss</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="muscle-gain">Muscle Gain</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="maintenance">Maintenance</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="energy">Energy Boost</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="heart-health">Heart Health</button>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <button id="clearProfile" class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-100 transition-colors">Clear</button>
+            <button id="saveProfile" class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold hover:shadow-lg transition-colors ml-auto">Save</button>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      class EnhancedChatApp {
+      class ChatApp {
         constructor() {
-          // Dynamically determine the base URL from the current location
-          const BASE_URL = `${window.location.protocol}//${window.location.host}`;
-          this.apiEndpoint = `${BASE_URL}/chat/messages`;
-          this.messagesContainer = document.getElementById('messages');
+          this.apiBase = `${window.location.protocol}//${window.location.host}/chat`;
+          this.messages = document.getElementById('messages');
           this.messageInput = document.getElementById('messageInput');
           this.sendButton = document.getElementById('sendButton');
           this.userIdInput = document.getElementById('userIdInput');
-          this.currentUserDisplay = document.getElementById('currentUser');
+          this.imageUrlInput = document.getElementById('imageUrlInput');
+          this.typingIndicator = document.getElementById('typingIndicator');
+          this.settingsModal = document.getElementById('settingsModal');
           this.isTyping = false;
+          this.currentAssistantMessage = null;
+          this.profile = { dietary_preferences: [], allergies: [], selected_goals: [] };
 
-          this.setupEventListeners();
-          this.updateUserDisplay();
-          this.loadMessages();
+          this.init();
         }
 
-        setupEventListeners() {
+        init() {
           this.sendButton.addEventListener('click', () => this.sendMessage());
-
           this.messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              this.sendMessage();
-            }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendMessage(); }
           });
-
-          this.messageInput.addEventListener('input', () => {
-            this.autoResizeTextarea();
-          });
-
-          this.userIdInput.addEventListener('input', () => {
-            this.updateUserDisplay();
-            this.clearMessages();
-            this.loadMessages();
-          });
-
-          this.userIdInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-              this.messageInput.focus();
-            }
-          });
+          document.getElementById('settingsBtn').addEventListener('click', () => this.openModal());
+          document.getElementById('loadMessagesBtn').addEventListener('click', () => this.loadMessages());
+          document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
+          document.getElementById('saveProfile').addEventListener('click', () => this.saveProfile());
+          document.getElementById('clearProfile').addEventListener('click', () => this.clearProfile());
+          this.settingsModal.addEventListener('click', (e) => { if (e.target === this.settingsModal) this.closeModal(); });
+          document.querySelectorAll('.chip').forEach(chip => { chip.addEventListener('click', () => chip.classList.toggle('selected')); });
         }
 
-        updateUserDisplay() {
-          const userId = this.userIdInput.value.trim() || 'Guest';
-          this.currentUserDisplay.textContent = userId;
+        openModal() { this.settingsModal.classList.remove('hidden'); }
+        closeModal() { this.settingsModal.classList.add('hidden'); }
+
+        getSelected(groupId) { return Array.from(document.querySelectorAll(`#${groupId} .chip.selected`)).map(c => c.dataset.value); }
+
+        saveProfile() {
+          this.profile.dietary_preferences = this.getSelected('dietaryOptions');
+          this.profile.allergies = this.getSelected('allergyOptions');
+          this.profile.selected_goals = this.getSelected('goalsOptions');
+          this.updateProfileChips();
+          this.closeModal();
         }
 
-        autoResizeTextarea() {
-          this.messageInput.style.height = 'auto';
-          this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 120) + 'px';
+        clearProfile() {
+          document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+          this.profile = { dietary_preferences: [], allergies: [], selected_goals: [] };
+          this.updateProfileChips();
+        }
+
+        updateProfileChips() {
+          document.querySelectorAll('#dietaryChips .chip').forEach(chip => { chip.classList.toggle('selected', this.profile.dietary_preferences.includes(chip.dataset.value)); });
+          document.querySelectorAll('#goalsChips .chip').forEach(chip => { chip.classList.toggle('selected', this.profile.selected_goals.includes(chip.dataset.value)); });
+        }
+
+        getCurrentProfile() {
+          return {
+            dietary_preferences: this.getSelected('dietaryOptions'),
+            allergies: this.getSelected('allergyOptions'),
+            selected_goals: this.getSelected('goalsOptions')
+          };
         }
 
         async loadMessages() {
+          const userId = this.userIdInput.value.trim() || 'user_123';
           try {
-            const userId = this.userIdInput.value.trim() || 'Guest';
-            const url = `${this.apiEndpoint}?user_id=${encodeURIComponent(userId)}`;
-            const response = await fetch(url, {
-              method: 'GET',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-              },
-            });
-
-            if (response.ok) {
-              const text = await response.text();
-              if (text.trim()) {
-                const messages = text
-                  .trim()
-                  .split('\n')
-                  .map((line) => JSON.parse(line));
-                messages.forEach((message) => this.displayMessage(message));
-              }
+            const res = await fetch(`${this.apiBase}/getMessages?user_id=${encodeURIComponent(userId)}&offset=0&limit=20`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            this.messages.innerHTML = '';
+            for (const msg of data.messages || []) {
+              this.addMessage({ role: msg.role, content: msg.text || msg.content || '' });
             }
-
-            this.scrollToBottom();
-          } catch (error) {
-            console.error('Error loading messages:', error);
-            this.showError('Failed to load chat history. Please refresh the page.');
-          }
+          } catch (err) { this.addMessage({ role: 'system', content: `Error: ${err.message}` }); }
         }
 
         async sendMessage() {
           const message = this.messageInput.value.trim();
-          if (!message || this.isTyping) return;
+          if (!message && !this.imageUrlInput.value.trim()) return;
+          if (this.isTyping) return;
 
-          const userId = this.userIdInput.value.trim() || 'Guest';
+          const userId = this.userIdInput.value.trim() || 'user_123';
+          const imageUrl = this.imageUrlInput.value.trim() || null;
+          const currentProfile = this.getCurrentProfile();
 
-          const userMessage = {
-            role: 'user',
-            timestamp: new Date().toISOString(),
-            content: message,
-          };
-
-          this.displayMessage(userMessage);
+          this.addMessage({ role: 'user', content: message || '[Image URL provided]' });
           this.messageInput.value = '';
-          this.autoResizeTextarea();
           this.setTyping(true);
+          this.currentAssistantMessage = null;
 
           try {
-            const requestBody = {
-              prompt: message,
-              user_id: userId,
-              local_time: new Date().toISOString(),
-              dietary_preferences: [],
-              allergies: [],
-              selected_goals: [],
-            };
-
-            const response = await fetch(this.apiEndpoint, {
+            const res = await fetch(`${this.apiBase}/message`, {
               method: 'POST',
-              body: JSON.stringify(requestBody),
-              headers: {
-                'Content-Type': 'application/json',
-                Accept: 'text/plain',
-              },
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: message, user_id: userId, image_url: imageUrl, image_data: null, local_time: new Date().toISOString(), ...currentProfile })
             });
-
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) {
-              throw new Error('No response body');
-            }
-
-            let currentMessage = null;
-            let currentMessageElement = null;
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              const chunk = new TextDecoder().decode(value);
-              const lines = chunk.split('\n').filter((line) => line.trim());
-
-              for (const line of lines) {
-                try {
-                  const messageData = JSON.parse(line);
-
-                  if (messageData.role === 'user') {
-                    continue;
-                  }
-
-                  if (messageData.is_final) {
-                    if (currentMessageElement) {
-                      currentMessageElement.remove();
-                    }
-                    this.displayMessage(messageData);
-                    currentMessage = null;
-                    currentMessageElement = null;
-                  } else if (messageData.is_tool_call) {
-                    const toolCallMsg = {
-                      role: 'model',
-                      timestamp: messageData.timestamp,
-                      content: `🔧 Analyzing nutrition data...`,
-                      is_system: true,
-                    };
-                    this.displayMessage(toolCallMsg);
-                  } else if (messageData.is_tool_result) {
-                    const toolResultMsg = {
-                      role: 'model',
-                      timestamp: messageData.timestamp,
-                      content: `✅ Nutrition analysis complete`,
-                      is_system: true,
-                    };
-                    this.displayMessage(toolResultMsg);
-                  } else if (messageData.is_partial) {
-                    if (!currentMessage) {
-                      currentMessage = messageData;
-                      currentMessageElement = this.displayMessage(messageData);
-                    } else {
-                      currentMessage.content = messageData.content;
-                      if (currentMessageElement) {
-                        this.updateMessageContent(currentMessageElement, messageData);
-                      }
-                    }
-                  } else {
-                    if (!currentMessage) {
-                      currentMessage = messageData;
-                      currentMessageElement = this.displayMessage(messageData);
-                    } else {
-                      currentMessage.content = messageData.content;
-                      if (currentMessageElement) {
-                        this.updateMessageContent(currentMessageElement, messageData);
-                      }
-                    }
-                  }
-                } catch (parseError) {
-                  console.error('Error parsing message:', parseError);
-                }
-              }
-            }
-          } catch (error) {
-            console.error('Error sending message:', error);
-            this.showError('Failed to send message. Please check your connection and try again.');
-          } finally {
-            this.setTyping(false);
-          }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            await this.processResponse(await res.json());
+          } catch (err) { this.addMessage({ role: 'system', content: `Error: ${err.message}` }); }
+          finally { this.setTyping(false); this.currentAssistantMessage = null; }
         }
 
-        displayMessage(message) {
-          const messageDiv = document.createElement('div');
-          if (message.is_system) {
-            messageDiv.className = 'message system';
+        async processResponse(data) {
+          if (data.ai_answer) {
+            this.currentAssistantMessage = { role: 'assistant', content: data.ai_answer, tool_response: data.tool_response };
+            this.addMessage(this.currentAssistantMessage);
+          }
+          if (data.error) { this.addMessage({ role: 'system', content: `Error: ${data.error}` }); }
+        }
+
+        addMessage(data) {
+          const div = document.createElement('div');
+          div.className = `flex ${data.role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+          if (data.role === 'user') {
+            div.innerHTML = `<div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-3 rounded-2xl rounded-br-md max-w-[85%] shadow-lg"><p class="text-sm">${this.escapeHtml(data.content)}</p></div>`;
+          } else if (data.role === 'system') {
+            div.innerHTML = `<div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-xl rounded-bl-md text-xs">${this.escapeHtml(data.content)}</div>`;
           } else {
-            messageDiv.className = `message ${message.role}`;
-          }
-
-          const messageWrapper = document.createElement('div');
-          messageWrapper.className = 'message-wrapper';
-          messageDiv.appendChild(messageWrapper);
-
-          const contentDiv = document.createElement('div');
-          contentDiv.className = 'message-content';
-          messageWrapper.appendChild(contentDiv);
-
-          // Render tool_calls and tool_returns if present
-          let extraHtml = '';
-          if (message.tool_calls && message.tool_calls.length > 0) {
-            extraHtml += `<div class="tool-section">
-                        <strong>
-                            <span class="material-icons-outlined" style="font-size: 18px;">build</span>
-                            Tool Calls
-                        </strong>
-                        <ul style="margin:0 0 0 1em; list-style: none; padding-left: 0;">`;
-            message.tool_calls.forEach((tc) => {
-              extraHtml += `<li style="margin: 0.5rem 0; padding: 0.75rem; background: var(--background); border-radius: 6px; border-left: 3px solid var(--warning-color);">
-                            <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.25rem;">${tc.tool_name}</div>
-                            <code style="background: rgba(0,0,0,0.1); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${tc.args}</code>
-                            <div style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.25rem;">ID: ${tc.tool_call_id}</div>
-                        </li>`;
-            });
-            extraHtml += `</ul></div>`;
-          }
-          if (message.tool_returns && message.tool_returns.length > 0) {
-            extraHtml += `<div class="tool-section">
-                        <strong>
-                            <span class="material-icons-outlined" style="font-size: 18px;">assignment_turned_in</span>
-                            Tool Returns
-                        </strong>
-                        <ul style="margin:0 0 0 1em; list-style: none; padding-left: 0;">`;
-            message.tool_returns.forEach((tr) => {
-              const content =
-                typeof tr.content === 'object' ? JSON.stringify(tr.content, null, 2) : tr.content;
-              const highlightedContent =
-                typeof tr.content === 'object' ? this.syntaxHighlight(tr.content) : content;
-              extraHtml += `<li style="margin: 0.5rem 0;">
-                            <div style="font-weight: 600; color: var(--success-color); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <span class="material-icons-outlined" style="font-size: 16px;">check_circle</span>
-                                ${tr.tool_name}
-                                <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: normal;">ID: ${tr.tool_call_id}</span>
-                            </div>
-                            <pre class="tool-return-code">${highlightedContent}</pre>
-                        </li>`;
-            });
-            extraHtml += `</ul></div>`;
-          }
-
-          // Nutrition rendering if present, else normal content
-          if (
-            message.role === 'model' &&
-            message.tool_returns &&
-            this.extractNutritionData(message.tool_returns)
-          ) {
-            contentDiv.innerHTML =
-              this.formatNutritionResponse(
-                message.content,
-                this.extractNutritionData(message.tool_returns)
-              ) + extraHtml;
-          } else {
-            contentDiv.innerHTML = this.formatTextContent(message.content) + extraHtml;
-          }
-
-          if (!message.is_system) {
-            const timestamp = document.createElement('div');
-            timestamp.className = 'message-timestamp';
-
-            const statusIcon = document.createElement('span');
-            statusIcon.className = 'status-indicator';
-            statusIcon.title = 'Delivered';
-
-            const timeText = document.createElement('span');
-            timeText.textContent = this.formatTimestamp(message.timestamp);
-
-            if (message.role === 'user') {
-              timestamp.appendChild(timeText);
-              timestamp.appendChild(statusIcon);
-            } else {
-              const aiIcon = document.createElement('span');
-              aiIcon.className = 'material-icons-outlined';
-              aiIcon.textContent = 'smart_toy';
-              aiIcon.style.fontSize = '16px';
-              timestamp.appendChild(aiIcon);
-              timestamp.appendChild(timeText);
+            const bubble = document.createElement('div');
+            bubble.className = 'bg-white px-5 py-4 rounded-2xl rounded-bl-md shadow-lg max-w-[85%] w-full';
+            
+            let contentText = typeof data.content === 'string' ? data.content : (data.content?.message || '');
+            let html = contentText ? `<div class="text-sm leading-relaxed mb-4">${contentText}</div>` : '';
+            
+            if (data.tool_response) {
+              const nutrition = data.tool_response.response || data.tool_response;
+              html += this.renderNutritionCard(nutrition, data.tool_response.metadata);
             }
-
-            messageWrapper.appendChild(timestamp);
+            
+            bubble.innerHTML = html;
+            div.appendChild(bubble);
+            data._element = div;
           }
 
-          this.messagesContainer.appendChild(messageDiv);
+          this.messages.appendChild(div);
           this.scrollToBottom();
-          return messageDiv;
-        }
-        clearMessages() {
-          this.messagesContainer.innerHTML = '';
+          return div;
         }
 
-        updateMessageContent(messageElement, message) {
-          const contentDiv = messageElement.querySelector('.message-content');
-          let extraHtml = '';
-          if (message.tool_calls && message.tool_calls.length > 0) {
-            extraHtml += `<div class="tool-section">
-                        <strong>
-                            <span class="material-icons-outlined" style="font-size: 18px;">build</span>
-                            Tool Calls
-                        </strong>
-                        <ul style="margin:0 0 0 1em; list-style: none; padding-left: 0;">`;
-            message.tool_calls.forEach((tc) => {
-              extraHtml += `<li style="margin: 0.5rem 0; padding: 0.75rem; background: var(--background); border-radius: 6px; border-left: 3px solid var(--warning-color);">
-                            <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 0.25rem;">${tc.tool_name}</div>
-                            <code style="background: rgba(0,0,0,0.1); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${tc.args}</code>
-                            <div style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.25rem;">ID: ${tc.tool_call_id}</div>
-                        </li>`;
-            });
-            extraHtml += `</ul></div>`;
-          }
-          if (message.tool_returns && message.tool_returns.length > 0) {
-            extraHtml += `<div class="tool-section">
-                        <strong>
-                            <span class="material-icons-outlined" style="font-size: 18px;">assignment_turned_in</span>
-                            Tool Returns
-                        </strong>
-                        <ul style="margin:0 0 0 1em; list-style: none; padding-left: 0;">`;
-            message.tool_returns.forEach((tr) => {
-              const content =
-                typeof tr.content === 'object' ? JSON.stringify(tr.content, null, 2) : tr.content;
-              const highlightedContent =
-                typeof tr.content === 'object' ? this.syntaxHighlight(tr.content) : content;
-              extraHtml += `<li style="margin: 0.5rem 0;">
-                            <div style="font-weight: 600; color: var(--success-color); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <span class="material-icons-outlined" style="font-size: 16px;">check_circle</span>
-                                ${tr.tool_name}
-                                <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: normal;">ID: ${tr.tool_call_id}</span>
-                            </div>
-                            <pre class="tool-return-code">${highlightedContent}</pre>
-                        </li>`;
-            });
-            extraHtml += `</ul></div>`;
-          }
+        renderNutritionCard(nutrition, metadata) {
+          const foodName = nutrition.foodName || 'Unknown Food';
+          const healthScore = nutrition.overallHealthScore || 0;
+          const portionSize = nutrition.portionSize || 0;
+          const portion = nutrition.portion || 'g';
+          const confidence = nutrition.confidenceScore || 0;
+          const ingredients = nutrition.ingredients || [];
+          const concerns = nutrition.primaryConcerns || [];
+          const alternatives = nutrition.suggestAlternatives || [];
 
-          if (
-            message.role === 'model' &&
-            message.tool_returns &&
-            this.extractNutritionData(message.tool_returns)
-          ) {
-            contentDiv.innerHTML =
-              this.formatNutritionResponse(
-                message.content,
-                this.extractNutritionData(message.tool_returns)
-              ) + extraHtml;
-          } else {
-            contentDiv.innerHTML = this.formatTextContent(message.content) + extraHtml;
-          }
-        }
+          const totalCalories = ingredients.reduce((s, i) => s + (i.calories || 0), 0);
+          const totalProtein = ingredients.reduce((s, i) => s + (i.protein || 0), 0);
+          const totalCarbs = ingredients.reduce((s, i) => s + (i.carbs || 0), 0);
+          const totalFat = ingredients.reduce((s, i) => s + (i.fat || 0), 0);
 
-        extractNutritionData(toolReturns) {
-          for (const toolReturn of toolReturns) {
-            if (
-              toolReturn.tool_name === 'calculate_nutrition_by_food_description' &&
-              toolReturn.content
-            ) {
-              return toolReturn.content;
-            }
-          }
-          return null;
-        }
+          const scoreColor = healthScore >= 8 ? 'text-green-600' : healthScore >= 5 ? 'text-yellow-600' : 'text-red-600';
+          const scoreBg = healthScore >= 8 ? 'bg-green-50 border-green-200' : healthScore >= 5 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200';
 
-        // Function to apply syntax highlighting to JSON
-        syntaxHighlight(json) {
-          if (typeof json !== 'string') {
-            json = JSON.stringify(json, undefined, 2);
-          }
-          json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          return json.replace(
-            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
-            function (match) {
-              let cls = 'json-number';
-              if (/^"/.test(match)) {
-                if (/:$/.test(match)) {
-                  cls = 'json-key';
-                } else {
-                  cls = 'json-string';
-                }
-              } else if (/true|false/.test(match)) {
-                cls = 'json-boolean';
-              } else if (/null/.test(match)) {
-                cls = 'json-null';
-              }
-              return '<span class="' + cls + '">' + match + '</span>';
-            }
-          );
-        }
+          let html = `
+          <div class="nutrition-card mt-4 border border-gray-200 rounded-xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-gray-900">${this.escapeHtml(foodName)}</h3>
+                <p class="text-xs text-gray-500">${portionSize}${portion} • Confidence: ${confidence}/10</p>
+              </div>
+              <div class="text-center">
+                <div class="relative w-14 h-14">
+                  <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
+                    <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <path class="${healthScore >= 8 ? 'text-green-500' : healthScore >= 5 ? 'text-yellow-500' : 'text-red-500'}" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="${healthScore * 10}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  </svg>
+                  <span class="absolute inset-0 flex items-center justify-center text-sm font-bold ${scoreColor}">${healthScore}</span>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-1">out of 10</p>
+              </div>
+            </div>
 
-        formatNutritionResponse(content, nutritionData) {
-          let html = '';
+            <!-- Macros Grid -->
+            <div class="grid grid-cols-4 gap-2 p-4 bg-white">
+              <div class="text-center p-2 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Calories</p>
+                <p class="font-bold text-gray-900">${totalCalories}</p>
+                <p class="text-[10px] text-gray-400">kcal</p>
+              </div>
+              <div class="text-center p-2 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Protein</p>
+                <p class="font-bold text-gray-900">${totalProtein}g</p>
+                <p class="text-[10px] text-gray-400">grams</p>
+              </div>
+              <div class="text-center p-2 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Carbs</p>
+                <p class="font-bold text-gray-900">${totalCarbs}g</p>
+                <p class="text-[10px] text-gray-400">grams</p>
+              </div>
+              <div class="text-center p-2 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Fat</p>
+                <p class="font-bold text-gray-900">${totalFat}g</p>
+                <p class="text-[10px] text-gray-400">grams</p>
+              </div>
+            </div>
 
-          if (content) {
-            html += `<div>${this.formatTextContent(content)}</div>`;
-          }
+            <!-- Ingredients -->
+            ${ingredients.length > 0 ? `
+            <div class="px-4 py-3 border-t border-gray-100">
+              <p class="text-xs font-semibold text-gray-700 mb-2">Ingredients Breakdown</p>
+              <div class="space-y-2">
+                ${ingredients.map(ing => `
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-gray-700">${this.escapeHtml(ing.name)}</span>
+                    <span class="text-gray-500">${ing.calories || 0} cal • ${ing.protein || 0}g P • ${ing.carbs || 0}g C • ${ing.fat || 0}g F</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            ` : ''}
 
-          const data = nutritionData.response;
+            <!-- Health Comments -->
+            ${nutrition.overallHealthComments ? `
+            <div class="px-4 py-3 border-t border-gray-100 bg-blue-50/50">
+              <p class="text-xs text-gray-700">${this.escapeHtml(nutrition.overallHealthComments)}</p>
+            </div>
+            ` : ''}
 
-          html += `<div class="nutrition-info">`;
+            <!-- Concerns -->
+            ${concerns.length > 0 ? `
+            <div class="px-4 py-3 border-t border-gray-100">
+              <p class="text-xs font-semibold text-red-600 mb-2">⚠️ Concerns</p>
+              ${concerns.map(c => `
+                <div class="mb-2">
+                  <p class="text-xs font-medium text-red-700">${this.escapeHtml(c.issue)}</p>
+                  <p class="text-xs text-gray-600 mt-0.5">${this.escapeHtml(c.explanation)}</p>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
 
-          // Header section with improved icon
-          html += `<div class="nutrition-section">`;
-          html += `<h4><div class="section-icon"><span class="material-icons-outlined">analytics</span></div>${data.foodName}</h4>`;
-          html += `<p><strong>Portion:</strong> ${data.portionSize} ${data.portion}</p>`;
-          html += `<p><strong>Analysis Confidence:</strong> ${data.confidenceScore}/10</p>`;
-          html += `</div>`;
+            <!-- Alternatives -->
+            ${alternatives.length > 0 ? `
+            <div class="px-4 py-3 border-t border-gray-100">
+              <p class="text-xs font-semibold text-green-700 mb-2">💡 Healthier Alternatives</p>
+              <div class="space-y-2">
+                ${alternatives.slice(0, 3).map(alt => `
+                  <div class="flex items-center justify-between p-2 bg-green-50/50 rounded-lg">
+                    <div>
+                      <p class="text-xs font-medium text-gray-800">${this.escapeHtml(alt.name)}</p>
+                      <p class="text-[10px] text-gray-500">${alt.calories || 0} cal • ${alt.protein || 0}g P</p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${(alt.healthScore || 0) >= 8 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${alt.healthScore || 0}/10</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            ` : ''}
 
-          // Nutrition overview with cards
-          if (data.ingredients && data.ingredients.length > 0) {
-            const totalNutrition = this.calculateTotalNutrition(data.ingredients);
+            <!-- Metadata -->
+            ${metadata ? `
+            <div class="px-4 py-2 bg-gray-50 border-t border-gray-100 text-[10px] text-gray-400">
+              ${metadata.execution_time_seconds ? `Analysis time: ${metadata.execution_time_seconds.toFixed(1)}s` : ''}
+              ${metadata.estimated_cost ? ` • Cost: $${metadata.estimated_cost.toFixed(5)}` : ''}
+            </div>
+            ` : ''}
+          </div>`;
 
-            html += `<div class="nutrition-section">`;
-            html += `<h4><div class="section-icon"><span class="material-icons-outlined">pie_chart</span></div>Nutritional Breakdown</h4>`;
-            html += `<div class="nutrition-grid">`;
-            html += `<div class="nutrition-card tooltip" data-tooltip="Total energy content">
-                        <div class="nutrition-value">${totalNutrition.calories}</div>
-                        <div class="nutrition-label">Calories</div>
-                    </div>`;
-            html += `<div class="nutrition-card tooltip" data-tooltip="Muscle building macronutrient">
-                        <div class="nutrition-value">${totalNutrition.protein}g</div>
-                        <div class="nutrition-label">Protein</div>
-                    </div>`;
-            html += `<div class="nutrition-card tooltip" data-tooltip="Primary energy source">
-                        <div class="nutrition-value">${totalNutrition.carbs}g</div>
-                        <div class="nutrition-label">Carbohydrates</div>
-                    </div>`;
-            html += `<div class="nutrition-card tooltip" data-tooltip="Essential fats for body functions">
-                        <div class="nutrition-value">${totalNutrition.fat}g</div>
-                        <div class="nutrition-label">Fat</div>
-                    </div>`;
-            html += `</div>`;
-            html += `</div>`;
-
-            // Individual ingredients
-            if (data.ingredients.length > 1) {
-              html += `<div class="nutrition-section">`;
-              html += `<h4><div class="section-icon"><span class="material-icons-outlined">search</span></div>Ingredient Analysis</h4>`;
-              data.ingredients.forEach((ingredient) => {
-                const healthScoreClass =
-                  ingredient.healthScore >= 7 ? '' : ingredient.healthScore >= 5 ? 'medium' : 'low';
-                const scoreIcon =
-                  ingredient.healthScore >= 7
-                    ? 'check_circle'
-                    : ingredient.healthScore >= 5
-                    ? 'warning'
-                    : 'error';
-                html += `<div class="nutrition-item">`;
-                html += `<strong>${ingredient.name}</strong>`;
-                html += `<span class="health-score ${healthScoreClass}">
-                                <span class="health-score-icon material-icons-outlined">${scoreIcon}</span>
-                                Score: ${ingredient.healthScore}/10
-                            </span><br>`;
-                html += `<em>Calories: ${ingredient.calories} | Protein: ${ingredient.protein}g | Carbs: ${ingredient.carbs}g | Fat: ${ingredient.fat}g</em><br>`;
-                html += `<small style="margin-top: 0.5rem; display: block;">${ingredient.healthComments}</small>`;
-                html += `</div>`;
-              });
-              html += `</div>`;
-            }
-          }
-
-          // Overall health assessment
-          const overallScoreClass =
-            data.overallHealthScore >= 7 ? '' : data.overallHealthScore >= 5 ? 'medium' : 'low';
-          const overallIcon =
-            data.overallHealthScore >= 7
-              ? 'check_circle'
-              : data.overallHealthScore >= 5
-              ? 'warning'
-              : 'error';
-          html += `<div class="nutrition-section">`;
-          html += `<h4><div class="section-icon"><span class="material-icons-outlined">health_and_safety</span></div>Health Assessment</h4>`;
-          html += `<div class="nutrition-item" style="border-left-color: ${
-            data.overallHealthScore >= 7
-              ? 'var(--success-color)'
-              : data.overallHealthScore >= 5
-              ? 'var(--warning-color)'
-              : 'var(--danger-color)'
-          };">`;
-          html += `<span class="health-score ${overallScoreClass}">
-                    <span class="health-score-icon material-icons-outlined">${overallIcon}</span>
-                    Overall Score: ${data.overallHealthScore}/10
-                </span><br>`;
-          html += `<p style="margin-top: 0.75rem;">${data.overallHealthComments}</p>`;
-          html += `</div>`;
-          html += `</div>`;
-
-          // Health concerns
-          if (data.primaryConcerns && data.primaryConcerns.length > 0) {
-            html += `<div class="nutrition-section">`;
-            html += `<h4><div class="section-icon"><span class="material-icons-outlined">warning</span></div>Health Concerns</h4>`;
-            data.primaryConcerns.forEach((concern) => {
-              html += `<div class="nutrition-item" style="border-left-color: var(--warning-color);">`;
-              html += `<strong>${concern.issue}</strong><br>`;
-              html += `<p style="margin: 0.5rem 0;">${concern.explanation}</p>`;
-              if (concern.recommendations && concern.recommendations.length > 0) {
-                html += `<div style="margin-top: 0.75rem;"><strong><span class="material-icons-outlined" style="font-size: 16px; vertical-align: middle;">lightbulb</span> Recommendations:</strong></div>`;
-                concern.recommendations.forEach((rec) => {
-                  html += `<div style="margin: 0.25rem 0; padding-left: 1rem;">• <strong>${rec.food}</strong> (${rec.quantity}): ${rec.reasoning}</div>`;
-                });
-              }
-              html += `</div>`;
-            });
-            html += `</div>`;
-          }
-
-          // Healthier alternatives
-          if (data.suggestAlternatives && data.suggestAlternatives.length > 0) {
-            html += `<div class="nutrition-section">`;
-            html += `<h4><div class="section-icon"><span class="material-icons-outlined">swap_horiz</span></div>Healthier Alternatives</h4>`;
-            data.suggestAlternatives.forEach((alt) => {
-              const altScoreClass =
-                alt.healthScore >= 7 ? '' : alt.healthScore >= 5 ? 'medium' : 'low';
-              const altIcon =
-                alt.healthScore >= 7 ? 'check_circle' : alt.healthScore >= 5 ? 'warning' : 'error';
-              html += `<div class="nutrition-item" style="border-left-color: var(--primary-color);">`;
-              html += `<strong>${alt.name}</strong>`;
-              html += `<span class="health-score ${altScoreClass}">
-                            <span class="health-score-icon material-icons-outlined">${altIcon}</span>
-                            ${alt.healthScore}/10
-                        </span><br>`;
-              html += `<em>Calories: ${alt.calories} | Protein: ${alt.protein}g | Carbs: ${alt.carbs}g | Fat: ${alt.fat}g</em><br>`;
-              html += `<p style="margin-top: 0.5rem;">${alt.healthComments}</p>`;
-              html += `</div>`;
-            });
-            html += `</div>`;
-          }
-
-          html += `</div>`;
           return html;
         }
 
-        calculateTotalNutrition(ingredients) {
-          return ingredients.reduce(
-            (total, ingredient) => ({
-              calories: total.calories + ingredient.calories,
-              protein: total.protein + ingredient.protein,
-              carbs: total.carbs + ingredient.carbs,
-              fiber: total.fiber + ingredient.fiber,
-              fat: total.fat + ingredient.fat,
-            }),
-            { calories: 0, protein: 0, carbs: 0, fiber: 0, fat: 0 }
-          );
+        escapeHtml(text) {
+          if (!text) return '';
+          const div = document.createElement('div');
+          div.textContent = text;
+          return div.innerHTML;
         }
 
-        formatTextContent(content) {
-          return content
-            .replace(/\n/g, '<br>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        setTyping(on) {
+          this.isTyping = on;
+          this.sendButton.disabled = on;
+          this.typingIndicator.classList.toggle('hidden', !on);
+          if (on) this.scrollToBottom();
         }
 
-        formatTimestamp(timestamp) {
-          const date = new Date(timestamp);
-          return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-          });
-        }
-
-        setTyping(typing) {
-          this.isTyping = typing;
-          this.sendButton.disabled = typing;
-
-          const existingIndicator = document.querySelector('.typing-indicator');
-          if (existingIndicator) {
-            existingIndicator.remove();
-          }
-
-          if (typing) {
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.innerHTML = `
-                        <div class="typing-avatar">
-                            <span class="material-icons-outlined">smart_toy</span>
-                        </div>
-                        <div>
-                            <span style="font-weight: 500;">NomAI is analyzing your nutrition data</span>
-                            <div class="typing-dots">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
-                        </div>
-                    `;
-            this.messagesContainer.appendChild(typingDiv);
-            this.scrollToBottom();
-          }
-        }
-
-        showError(message) {
-          const errorDiv = document.createElement('div');
-          errorDiv.className = 'error-message';
-          errorDiv.innerHTML = `
-                    <div class="error-icon">
-                        <span class="material-icons-outlined">error</span>
-                    </div>
-                    <div>${message}</div>
-                `;
-          this.messagesContainer.appendChild(errorDiv);
-          this.scrollToBottom();
-
-          setTimeout(() => {
-            if (errorDiv.parentNode) {
-              errorDiv.remove();
-            }
-          }, 8000);
-        }
-
-        scrollToBottom() {
-          this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-        }
+        scrollToBottom() { this.messages.scrollTop = this.messages.scrollHeight; }
       }
 
-      // Initialize the enhanced chat app
-      document.addEventListener('DOMContentLoaded', () => {
-        new EnhancedChatApp();
-      });
+      new ChatApp();
     </script>
   </body>
 </html>
