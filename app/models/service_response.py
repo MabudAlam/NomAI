@@ -57,6 +57,11 @@ class NutritionServiceResponse(BaseModel):
 
         return result
 
+    def empty_response(self) -> "NutritionServiceResponse":
+        """Return an empty response with the same status and message"""
+        return NutritionServiceResponse(
+            response=None, status=self.status, message=self.message, metadata=self.metadata
+        )
     def json(self, **kwargs) -> str:
         """Override JSON serialization to handle enums properly"""
         return super().json(by_alias=True, exclude_none=False, **kwargs)
