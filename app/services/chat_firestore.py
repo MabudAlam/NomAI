@@ -1,9 +1,19 @@
 """
 Firestore service for storing and retrieving chat messages.
 
-Collection structure:
+Document structure:
 - Collection: chats
-- Documents: {userId}/messages/{messageId}
+- Document ID: {userId}
+- Document: {
+    userId: string,
+    messages: array<{
+      text: string,
+      role: "user" | "model",
+      sources: object | null,
+      timestamp: timestamp
+    }>,
+    updatedAt: timestamp
+  }
 """
 
 import os
@@ -17,6 +27,9 @@ from firebase_admin import credentials, firestore
 from app.models.chat_models import ChatMessage
 
 
+MAX_MESSAGES = 50
+
+
 @dataclass
 class ChatFirestore:
     """
@@ -25,7 +38,7 @@ class ChatFirestore:
     Structure:
     - Collection: chats
     - Each document ID is the userId
-    - Subcollection: messages/{messageId}
+    - Document contains array of messages (max 50, oldest trimmed)
     """
 
     _initialized: bool = field(default=False, init=False)
@@ -46,7 +59,7 @@ class ChatFirestore:
             cred = credentials.Certificate(cred_path)
             firebase_admin.initialize_app(cred)
 
-        self._db = firestore.client()
+        self._db = firestore.client(database_id="mealai")
         self._initialized = True
 
     @classmethod
@@ -62,7 +75,19 @@ class ChatFirestore:
             self._initialize()
         return self._db
 
-    async def add_message(
+    def _trim_old_messages(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Keep only the last MAX_MESSAGES based on timestamp."""
+        if len(messages) <= MAX_MESSAGES:
+            return messages
+
+        sorted_msgs = sorted(
+            messages,
+            key=lambda x: x.get("timestamp", datetime.min.replace(tzinfo=timezone.utc)),
+            reverse=True
+        )
+        return sorted_msgs[:MAX_MESSAGES]
+
+    def add_message(
         self,
         user_id: str,
         text: str,
@@ -88,22 +113,31 @@ class ChatFirestore:
         if timestamp is None:
             timestamp = datetime.now(timezone.utc)
 
-        message_data = {
+        doc_ref = db.collection("chats").document(user_id)
+
+        doc = doc_ref.get()
+        doc_dict = doc.to_dict() if doc.exists else {}
+
+        messages = list(doc_dict.get("messages", []))
+        messages.append({
             "text": text,
             "role": role,
             "sources": sources,
             "timestamp": timestamp,
+        })
+
+        messages = self._trim_old_messages(messages)
+
+        write_data = {
             "userId": user_id,
+            "messages": messages,
+            "updatedAt": timestamp,
         }
 
-        user_chats_ref = db.collection("chats").document(user_id)
-        messages_ref = user_chats_ref.collection("messages")
-        doc_ref = messages_ref.document()
+        doc_ref.set(write_data, merge=True)
+        return f"msg_{timestamp.timestamp()}"
 
-        doc_ref.set(message_data)
-        return doc_ref.id
-
-    async def get_messages(
+    def get_messages(
         self,
         user_id: str,
         offset: int = 0,
@@ -122,71 +156,62 @@ class ChatFirestore:
         """
         db = self._get_db()
 
-        user_chats_ref = db.collection("chats").document(user_id)
-        messages_ref = user_chats_ref.collection("messages")
-
-        query = messages_ref.order_by("timestamp", direction=firestore.Query.DESCENDING)
-
-        total_result = query.count().get()
-        total = total_result[0][0].value if total_result else 0
-
-        query = query.offset(offset).limit(limit)
-        docs = query.get()
-
-        messages = []
-        for doc in docs:
-            data = doc.to_dict()
-            message: ChatMessage = {
-                "role": data.get("role", "user"),
-                "text": data.get("text", ""),
-                "sources": data.get("sources"),
-                "timestamp": data.get("timestamp"),
-            }
-            if isinstance(message["timestamp"], datetime):
-                message["timestamp"] = message["timestamp"].isoformat()
-            messages.append(message)
-
-        messages.reverse()
-        return messages, total
-
-    async def get_message_by_id(
-        self,
-        user_id: str,
-        message_id: str,
-    ) -> Optional[ChatMessage]:
-        """
-        Get a specific message by ID.
-
-        Args:
-            user_id: The user ID
-            message_id: The message ID
-
-        Returns:
-            The message or None if not found
-        """
-        db = self._get_db()
-
-        doc_ref = (
-            db.collection("chats")
-            .document(user_id)
-            .collection("messages")
-            .document(message_id)
-        )
+        doc_ref = db.collection("chats").document(user_id)
         doc = doc_ref.get()
 
         if not doc.exists:
-            return None
+            return [], 0
 
-        data = doc.to_dict()
-        message: ChatMessage = {
-            "role": data.get("role", "user"),
-            "text": data.get("text", ""),
-            "sources": data.get("sources"),
-            "timestamp": data.get("timestamp"),
-        }
-        if isinstance(message["timestamp"], datetime):
-            message["timestamp"] = message["timestamp"].isoformat()
-        return message
+        doc_dict = doc.to_dict()
+        messages_list = doc_dict.get("messages", [])
+
+        messages_list.sort(
+            key=lambda x: x.get("timestamp") or datetime.min.replace(tzinfo=timezone.utc)
+        )
+
+        total = len(messages_list)
+
+        paginated = messages_list[offset : offset + limit]
+
+        result: List[ChatMessage] = []
+        for msg in paginated:
+            timestamp = msg.get("timestamp")
+            if isinstance(timestamp, datetime):
+                timestamp = timestamp.isoformat()
+            result.append(
+                {
+                    "role": msg.get("role", "user"),
+                    "text": msg.get("text", ""),
+                    "sources": msg.get("sources"),
+                    "timestamp": timestamp,
+                }
+            )
+
+        return result, total
+
+    def get_all_messages_for_context(
+        self,
+        user_id: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get all messages for AI context (sorted oldest first).
+
+        Args:
+            user_id: The user ID
+
+        Returns:
+            List of messages for langchain context
+        """
+        messages, _ = self.get_messages(user_id, offset=0, limit=MAX_MESSAGES)
+
+        formatted = []
+        for msg in messages:
+            formatted.append({
+                "role": msg["role"],
+                "content": msg["text"],
+            })
+
+        return formatted
 
 
 chat_firestore = ChatFirestore.get_instance()

@@ -15,9 +15,10 @@
       .nutrition-card { animation: fadeIn 0.3s ease-out; }
       @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       .score-ring { stroke-dasharray: 251; }
+      .chip-selected { border-color: #10b981 !important; background-color: #d1fae5 !important; color: #065f46 !important; }
     </style>
   </head>
-  <body class="bg-gray-50 text-gray-900 min-h-screen">
+  <body class="bg-gray-100 min-h-screen">
     <div class="flex flex-col h-screen max-w-3xl mx-auto bg-white shadow-xl">
 
       <!-- Header -->
@@ -31,18 +32,11 @@
             <p class="text-xs text-gray-500">Your Nutrition Assistant</p>
           </div>
         </div>
-        <div class="flex items-center gap-3">
-          <button id="loadMessagesBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Load Messages">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-          </button>
-          <button id="settingsBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-            </svg>
-          </button>
-        </div>
+        <button id="profileBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Profile">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
       </header>
 
       <!-- Messages Container -->
@@ -62,88 +56,65 @@
         </div>
       </div>
 
-      <!-- User Profile Chips -->
-      <div id="profileChips" class="px-6 py-3 border-t border-gray-100 bg-white">
-        <div class="flex flex-wrap items-center gap-4 text-xs">
-          <div class="flex items-center gap-2">
-            <span class="text-gray-500 font-medium">Diet:</span>
-            <div class="flex flex-wrap gap-1" id="dietaryChips">
-              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="vegetarian">Vegetarian</button>
-              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="vegan">Vegan</button>
-              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="low-carb">Low Carb</button>
-              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="high-protein">High Protein</button>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-gray-500 font-medium">Goals:</span>
-            <div class="flex flex-wrap gap-1" id="goalsChips">
-              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="weight-loss">Weight Loss</button>
-              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="muscle-gain">Muscle Gain</button>
-              <button class="chip px-2 py-1 rounded-full border border-gray-200 hover:border-green-500 hover:text-green-600 transition-colors" data-value="maintenance">Maintenance</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Input Area -->
       <div class="p-4 border-t border-gray-200 bg-white">
         <div class="flex gap-3">
-          <input id="messageInput" type="text" placeholder="Describe your meal or paste an image URL..." class="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" />
+          <input id="messageInput" type="text" placeholder="Describe your meal..." class="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" />
           <button id="sendButton" class="px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold text-sm hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             Analyze
           </button>
         </div>
         <div class="flex gap-3 mt-3 items-center text-xs text-gray-500">
-          <input id="userIdInput" type="text" placeholder="User ID" value="user_123" class="px-3 py-1.5 rounded-lg border border-gray-200 w-28 outline-none focus:ring-2 focus:ring-green-500" />
+          <input id="userIdInput" type="text" placeholder="User ID" class="px-3 py-1.5 rounded-lg border border-gray-200 w-36 outline-none focus:ring-2 focus:ring-green-500" />
           <input id="imageUrlInput" type="text" placeholder="Or paste an image URL here..." class="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 outline-none focus:ring-2 focus:ring-green-500" />
         </div>
       </div>
 
-      <!-- Settings Modal -->
-      <div id="settingsModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+      <!-- Profile Modal -->
+      <div id="profileModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl">
-          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
             <h2 class="text-lg font-bold">Your Profile</h2>
-            <button id="closeModal" class="p-2 rounded-lg hover:bg-gray-100">
+            <button id="closeModal" class="p-2 rounded-lg hover:bg-white/20 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
-          <div class="p-6 space-y-6">
+          <div class="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
             <div>
-              <label class="text-sm font-semibold block mb-3">Dietary Preferences</label>
+              <label class="text-sm font-semibold text-gray-700 block mb-3">Dietary Preferences</label>
               <div class="flex flex-wrap gap-2" id="dietaryOptions">
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="vegetarian">Vegetarian</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="vegan">Vegan</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="low-carb">Low Carb</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="high-protein">High Protein</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="keto">Keto</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="gluten-free">Gluten Free</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="vegetarian">Vegetarian</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="vegan">Vegan</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="low-carb">Low Carb</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="high-protein">High Protein</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="keto">Keto</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="gluten-free">Gluten Free</button>
               </div>
             </div>
             <div>
-              <label class="text-sm font-semibold block mb-3">Allergies</label>
+              <label class="text-sm font-semibold text-gray-700 block mb-3">Allergies</label>
               <div class="flex flex-wrap gap-2" id="allergyOptions">
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="nuts">Nuts</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="dairy">Dairy</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="eggs">Eggs</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="soy">Soy</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-red-500 hover:text-red-600 transition-colors" data-value="wheat">Wheat</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="nuts">Nuts</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="dairy">Dairy</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="eggs">Eggs</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="soy">Soy</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="wheat">Wheat</button>
               </div>
             </div>
             <div>
-              <label class="text-sm font-semibold block mb-3">Health Goals</label>
+              <label class="text-sm font-semibold text-gray-700 block mb-3">Health Goals</label>
               <div class="flex flex-wrap gap-2" id="goalsOptions">
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="weight-loss">Weight Loss</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="muscle-gain">Muscle Gain</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="maintenance">Maintenance</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="energy">Energy Boost</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-green-500 hover:text-green-600 transition-colors" data-value="heart-health">Heart Health</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="weight-loss">Weight Loss</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="muscle-gain">Muscle Gain</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="maintenance">Maintenance</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="energy">Energy Boost</button>
+                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="heart-health">Heart Health</button>
               </div>
             </div>
           </div>
           <div class="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
-            <button id="clearProfile" class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-100 transition-colors">Clear</button>
-            <button id="saveProfile" class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold hover:shadow-lg transition-colors ml-auto">Save</button>
+            <button id="clearProfile" class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-100 transition-colors">Clear All</button>
+            <button id="saveProfile" class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold hover:shadow-lg transition-colors ml-auto">Save Profile</button>
           </div>
         </div>
       </div>
@@ -152,58 +123,109 @@
     <script>
       class ChatApp {
         constructor() {
-          this.apiBase = `${window.location.protocol}//${window.location.host}/chat`;
+          this.chatApiBase = `${window.location.protocol}//${window.location.host}/chat`;
+          this.userApiBase = `${window.location.protocol}//${window.location.host}/user`;
           this.messages = document.getElementById('messages');
           this.messageInput = document.getElementById('messageInput');
           this.sendButton = document.getElementById('sendButton');
           this.userIdInput = document.getElementById('userIdInput');
           this.imageUrlInput = document.getElementById('imageUrlInput');
           this.typingIndicator = document.getElementById('typingIndicator');
-          this.settingsModal = document.getElementById('settingsModal');
+          this.profileModal = document.getElementById('profileModal');
           this.isTyping = false;
           this.currentAssistantMessage = null;
-          this.profile = { dietary_preferences: [], allergies: [], selected_goals: [] };
-          this.chatHistory = [];
+          this.profile = this.loadProfile();
+          this.userId = localStorage.getItem('user_id') || '';
 
           this.init();
+          this.loadMessages();
         }
 
         init() {
+          this.userIdInput.value = this.userId;
+
+          this.userIdInput.addEventListener('change', () => {
+            this.userId = this.userIdInput.value.trim();
+            localStorage.setItem('user_id', this.userId);
+            this.loadMessages();
+          });
+
           this.sendButton.addEventListener('click', () => this.sendMessage());
           this.messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendMessage(); }
           });
-          document.getElementById('settingsBtn').addEventListener('click', () => this.openModal());
-          document.getElementById('loadMessagesBtn').addEventListener('click', () => this.loadMessages());
+          document.getElementById('profileBtn').addEventListener('click', () => this.openModal());
           document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
           document.getElementById('saveProfile').addEventListener('click', () => this.saveProfile());
           document.getElementById('clearProfile').addEventListener('click', () => this.clearProfile());
-          this.settingsModal.addEventListener('click', (e) => { if (e.target === this.settingsModal) this.closeModal(); });
-          document.querySelectorAll('.chip').forEach(chip => { chip.addEventListener('click', () => chip.classList.toggle('selected')); });
+          this.profileModal.addEventListener('click', (e) => { if (e.target === this.profileModal) this.closeModal(); });
+
+          document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+              chip.classList.toggle('chip-selected');
+            });
+          });
+
+          this.updateChipSelections();
         }
 
-        openModal() { this.settingsModal.classList.remove('hidden'); }
-        closeModal() { this.settingsModal.classList.add('hidden'); }
+        loadProfile() {
+          const stored = localStorage.getItem('user_profile');
+          if (stored) {
+            return JSON.parse(stored);
+          }
+          return { dietary_preferences: [], allergies: [], selected_goals: [] };
+        }
 
-        getSelected(groupId) { return Array.from(document.querySelectorAll(`#${groupId} .chip.selected`)).map(c => c.dataset.value); }
+        saveProfileToStorage() {
+          localStorage.setItem('user_profile', JSON.stringify(this.profile));
+          this.updateChipSelections();
+        }
+
+        updateChipSelections() {
+          const keyMap = {
+            'dietaryOptions': 'dietary_preferences',
+            'allergyOptions': 'allergies',
+            'goalsOptions': 'selected_goals'
+          };
+
+          Object.entries(keyMap).forEach(([groupId, key]) => {
+            const selected = this.profile[key] || [];
+            document.querySelectorAll(`#${groupId} .chip`).forEach(chip => {
+              if (selected.includes(chip.dataset.value)) {
+                chip.classList.add('chip-selected');
+              } else {
+                chip.classList.remove('chip-selected');
+              }
+            });
+          });
+        }
+
+        openModal() {
+          this.updateChipSelections();
+          this.profileModal.classList.remove('hidden');
+        }
+
+        closeModal() {
+          this.profileModal.classList.add('hidden');
+        }
+
+        getSelected(groupId) {
+          return Array.from(document.querySelectorAll(`#${groupId} .chip-selected`)).map(c => c.dataset.value);
+        }
 
         saveProfile() {
           this.profile.dietary_preferences = this.getSelected('dietaryOptions');
           this.profile.allergies = this.getSelected('allergyOptions');
           this.profile.selected_goals = this.getSelected('goalsOptions');
-          this.updateProfileChips();
+          this.saveProfileToStorage();
           this.closeModal();
         }
 
         clearProfile() {
-          document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
           this.profile = { dietary_preferences: [], allergies: [], selected_goals: [] };
-          this.updateProfileChips();
-        }
-
-        updateProfileChips() {
-          document.querySelectorAll('#dietaryChips .chip').forEach(chip => { chip.classList.toggle('selected', this.profile.dietary_preferences.includes(chip.dataset.value)); });
-          document.querySelectorAll('#goalsChips .chip').forEach(chip => { chip.classList.toggle('selected', this.profile.selected_goals.includes(chip.dataset.value)); });
+          this.saveProfileToStorage();
+          document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-selected'));
         }
 
         getCurrentProfile() {
@@ -215,53 +237,72 @@
         }
 
         async loadMessages() {
-          const userId = this.userIdInput.value.trim() || 'user_123';
+          if (!this.userId) {
+            this.addMessage({ role: 'system', content: 'Please enter your User ID to load chat history.' });
+            return;
+          }
+
           try {
-            const res = await fetch(`${this.apiBase}/getMessages?user_id=${encodeURIComponent(userId)}&offset=0&limit=20`);
+            const res = await fetch(`${this.userApiBase}/chats?user_id=${encodeURIComponent(this.userId)}&offset=0&limit=50`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             this.messages.innerHTML = '';
-            this.chatHistory = [];
             for (const msg of data.messages || []) {
-              const msgData = { role: msg.role, content: msg.text || msg.content || '' };
-              this.chatHistory.push(msgData);
+              const msgData = { 
+                role: msg.role, 
+                content: msg.text || msg.content || '', 
+                nutrition_data: msg.sources?.nutrition_data 
+              };
               this.addMessage(msgData);
             }
-          } catch (err) { this.addMessage({ role: 'system', content: `Error: ${err.message}` }); }
+          } catch (err) { 
+            this.addMessage({ role: 'system', content: `Error loading messages: ${err.message}` }); 
+          }
         }
 
         async sendMessage() {
           const message = this.messageInput.value.trim();
           if (!message && !this.imageUrlInput.value.trim()) return;
           if (this.isTyping) return;
+          if (!this.userId) {
+            this.userId = this.userIdInput.value.trim() || 'user_' + Date.now();
+            this.userIdInput.value = this.userId;
+            localStorage.setItem('user_id', this.userId);
+          }
 
-          const userId = this.userIdInput.value.trim() || 'user_123';
           const imageUrl = this.imageUrlInput.value.trim() || null;
           const currentProfile = this.getCurrentProfile();
 
           const userMsg = { role: 'user', content: message || '[Image URL provided]' };
           this.addMessage(userMsg);
-          this.chatHistory.push(userMsg);
           this.messageInput.value = '';
           this.setTyping(true);
           this.currentAssistantMessage = null;
 
           try {
-            const res = await fetch(`${this.apiBase}/message`, {
+            const res = await fetch(`${this.chatApiBase}/message`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: message, user_id: userId, image_url: imageUrl, image_data: null, local_time: new Date().toISOString(), ...currentProfile, history: this.chatHistory.slice(0, -1) })
+              body: JSON.stringify({ 
+                text: message, 
+                user_id: this.userId, 
+                image_url: imageUrl, 
+                image_data: null, 
+                local_time: new Date().toISOString(), 
+                ...currentProfile
+              })
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             await this.processResponse(await res.json());
-          } catch (err) { this.addMessage({ role: 'system', content: `Error: ${err.message}` }); }
+          } catch (err) { 
+            this.addMessage({ role: 'system', content: `Error: ${err.message}` }); 
+          }
           finally { this.setTyping(false); this.currentAssistantMessage = null; }
         }
 
         async processResponse(data) {
           if (data.ai_answer) {
             this.currentAssistantMessage = { role: 'assistant', content: data.ai_answer, nutrition_data: data.nutrition_data, tools_used: data.tools_used };
-            this.chatHistory.push({ role: 'assistant', content: data.ai_answer });
             this.addMessage(this.currentAssistantMessage);
           }
           if (data.error) { this.addMessage({ role: 'system', content: `Error: ${data.error}` }); }
@@ -271,7 +312,6 @@
           const div = document.createElement('div');
           div.className = `flex ${data.role === 'user' ? 'justify-end' : 'justify-start'}`;
           div.dataset.role = data.role;
-          div.dataset.content = typeof data.content === 'string' ? data.content : (data.content?.message || '');
 
           if (data.role === 'user') {
             div.innerHTML = `<div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-3 rounded-2xl rounded-br-md max-w-[85%] shadow-lg"><p class="text-sm">${this.escapeHtml(data.content)}</p></div>`;
@@ -281,7 +321,7 @@
             const bubble = document.createElement('div');
             bubble.className = 'bg-white px-5 py-4 rounded-2xl rounded-bl-md shadow-lg max-w-[85%] w-full';
 
-            let contentText = typeof data.content === 'string' ? data.content : (data.content?.message || '');
+            let contentText = data.content || '';
             let html = '';
             if (contentText) {
               const renderedMarkdown = marked.parse(contentText);
@@ -295,7 +335,6 @@
 
             bubble.innerHTML = html;
             div.appendChild(bubble);
-            data._element = div;
           }
 
           this.messages.appendChild(div);
@@ -318,12 +357,8 @@
           const totalCarbs = ingredients.reduce((s, i) => s + (i.carbs || 0), 0);
           const totalFat = ingredients.reduce((s, i) => s + (i.fat || 0), 0);
 
-          const scoreColor = healthScore >= 8 ? 'text-green-600' : healthScore >= 5 ? 'text-yellow-600' : 'text-red-600';
-          const scoreBg = healthScore >= 8 ? 'bg-green-50 border-green-200' : healthScore >= 5 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200';
-
           let html = `
           <div class="nutrition-card mt-4 border border-gray-200 rounded-xl overflow-hidden">
-            <!-- Header -->
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
               <div>
                 <h3 class="font-semibold text-gray-900">${this.escapeHtml(foodName)}</h3>
@@ -335,13 +370,12 @@
                     <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                     <path class="${healthScore >= 8 ? 'text-green-500' : healthScore >= 5 ? 'text-yellow-500' : 'text-red-500'}" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="${healthScore * 10}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                   </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-sm font-bold ${scoreColor}">${healthScore}</span>
+                  <span class="absolute inset-0 flex items-center justify-center text-sm font-bold ${healthScore >= 8 ? 'text-green-600' : healthScore >= 5 ? 'text-yellow-600' : 'text-red-600'}">${healthScore}</span>
                 </div>
                 <p class="text-[10px] text-gray-500 mt-1">out of 10</p>
               </div>
             </div>
 
-            <!-- Macros Grid -->
             <div class="grid grid-cols-4 gap-2 p-4 bg-white">
               <div class="text-center p-2 bg-gray-50 rounded-lg">
                 <p class="text-xs text-gray-500 mb-1">Calories</p>
@@ -365,7 +399,6 @@
               </div>
             </div>
 
-            <!-- Ingredients -->
             ${ingredients.length > 0 ? `
             <div class="px-4 py-3 border-t border-gray-100">
               <p class="text-xs font-semibold text-gray-700 mb-2">Ingredients Breakdown</p>
@@ -380,14 +413,12 @@
             </div>
             ` : ''}
 
-            <!-- Health Comments -->
             ${nutrition.overallHealthComments ? `
             <div class="px-4 py-3 border-t border-gray-100 bg-blue-50/50">
               <p class="text-xs text-gray-700">${this.escapeHtml(nutrition.overallHealthComments)}</p>
             </div>
             ` : ''}
 
-            <!-- Concerns -->
             ${concerns.length > 0 ? `
             <div class="px-4 py-3 border-t border-gray-100">
               <p class="text-xs font-semibold text-red-600 mb-2">⚠️ Concerns</p>
@@ -400,7 +431,6 @@
             </div>
             ` : ''}
 
-            <!-- Alternatives -->
             ${alternatives.length > 0 ? `
             <div class="px-4 py-3 border-t border-gray-100">
               <p class="text-xs font-semibold text-green-700 mb-2">💡 Healthier Alternatives</p>

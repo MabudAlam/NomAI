@@ -23,7 +23,6 @@ class SendMessageRequest(BaseModel):
     selected_goals: Optional[List[str]] = None
     image_url: Optional[str] = None
     image_data: Optional[str] = None
-    history: Optional[List[Dict[str, Any]]] = None
 
 
 class GetMessagesResponse(TypedDict):

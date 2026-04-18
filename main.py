@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.agent import agent
-from app.endpoints import nutrition
+from app.endpoints import nutrition, chat
 from app.utils.envManager import get_env_variable_safe
 from app.middleware.exception_handlers import setup_exception_handlers
 
@@ -38,6 +38,7 @@ app.add_middleware(
 )
 
 app.include_router(nutrition.router, prefix="/nutrition")
+app.include_router(chat.router, prefix="/user")
 app.include_router(agent.router, prefix="/chat")
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

@@ -13,6 +13,7 @@ from langchain_openrouter import ChatOpenRouter
 
 from app.agent.tools import analyse_food_description, analyse_image
 from app.models.chat_models import SendMessageRequest
+from app.services.chat_firestore import chat_firestore
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ PROVIDER_TYPE = os.getenv("PROVIDER_TYPE", "gemini").lower()
 
 _model = None
 _model2 = None
+
 
 def get_model() -> Any:
     global _model, _model2
@@ -40,6 +42,7 @@ def get_model() -> Any:
                 api_key=os.getenv("OPENROUTER_API_KEY"),
             )
         return _model2
+
 
 tools = [analyse_image, analyse_food_description]
 
@@ -128,7 +131,7 @@ You must apply these research heuristics:
 
 You have access to two tools:
 
-**analyse_food_description** — use when the user describes food they've eaten. ALWAYS call this tool immediately when the user describes food. Do not ask clarifying questions first.
+**analyse_food_description** — use when the user describes food he's eaten. ALWAYS call this tool immediately when the user describes food. Do not ask clarifying questions first.
 
 **IMPORTANT**: When calling analyse_food_description, you MUST include the user's profile as arguments. Even if the user only says "maggie" or "1 pizza", make reasonable assumptions and pass the profile:
 - dietary_preferences: Pass the user's dietary preferences (can be empty list [])
@@ -137,7 +140,7 @@ You have access to two tools:
 
 **analyse_image** — use when an image URL or base64 is provided. This tool may return: instance masks, depth_map (if available), per-instance visual classification suggestions, and optionally its own mass/density estimates.
 
-**Rule**: If the user provides an image, call analyse_image immediately. If the user describes food in text, call analyse_food_description immediately. Never ask follow-up questions before calling the tool first.
+**Rule**: If the user provides an image, call analyse_image immediately. If the user describes food in text, call analyse_food_description immediately. Never ask follow-up clarifying questions before calling the tool first.
 
 ## Flow
 
@@ -240,17 +243,19 @@ async def send_message(payload: SendMessageRequest) -> JSONResponse:
     elif payload.image_data:
         user_content = f"{user_content}\n[Image data provided]".strip()
 
+    user_id = payload.user_id
     dietary_preferences = payload.dietary_preferences or []
     allergies = payload.allergies or []
     selected_goals = payload.selected_goals or []
 
-    history = []
-    if payload.history:
-        for m in payload.history:
-            if m.get("role") == "user":
-                history.append(HumanMessage(content=m.get("content", "")))
-            else:
-                history.append(AIMessage(content=m.get("content", "")))
+    chat_firestore.add_message(
+        user_id=user_id,
+        text=user_content,
+        role="user",
+        sources=None,
+    )
+
+    history = chat_firestore.get_all_messages_for_context(user_id)
 
     system_prompt = get_system_prompt(dietary_preferences, allergies, selected_goals)
 
@@ -261,8 +266,17 @@ async def send_message(payload: SendMessageRequest) -> JSONResponse:
             system_prompt=system_prompt,
         )
 
+        langchain_messages = []
+        for m in history:
+            if m.get("role") == "user":
+                langchain_messages.append(HumanMessage(content=m.get("content", "")))
+            else:
+                langchain_messages.append(AIMessage(content=m.get("content", "")))
+
+        langchain_messages.append(HumanMessage(content=user_content))
+
         result = agent.invoke(
-            {"messages": [*history, HumanMessage(content=user_content)]},
+            {"messages": langchain_messages},
             config={"recursion_limit": 15},
         )
 
@@ -274,6 +288,13 @@ async def send_message(payload: SendMessageRequest) -> JSONResponse:
             first_tool = extracted["tool_responses"][0]
             nutrition_data = first_tool["content"]
             tools_used = [r["name"] for r in extracted["tool_responses"]]
+
+        chat_firestore.add_message(
+            user_id=user_id,
+            text=extracted["ai_answer"],
+            role="model",
+            sources={"nutrition_data": nutrition_data, "tools_used": tools_used},
+        )
 
         response_data = {
             "ai_answer": extracted["ai_answer"],
