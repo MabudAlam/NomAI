@@ -58,8 +58,6 @@ dependencies = [
     "importlib_metadata",
     "jiter",
     "jmespath",
-    "logfire",
-    "logfire-api",
     "markdown-it-py",
     "mcp",
     "mdurl",
@@ -87,7 +85,7 @@ dependencies = [
     "pyasn1_modules",
     "pycparser",
     "pydantic",
-    "pydantic-ai[logfire]",
+    "pydantic-ai",
     "pydantic-ai-slim",
     "pydantic-evals",
     "pydantic-graph",
@@ -120,7 +118,12 @@ dependencies = [
     "websockets",
     "wrapt",
     "zipp",
-    "supabase>=2.17.0",
+    "langgraph>=1.1.6",
+    "langchain-openai>=1.1.12",
+    "langchain>=1.2.15",
+    "langchain-google-genai>=4.2.2",
+    "langsmith[claude-agent-sdk]>=0.7.25",
+    "langchain-exa>=1.1.0",
 ]
 
 [build-system]

@@ -1,22 +1,14 @@
-import json
-import os
-from typing import Any, Dict
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.agent import agent
 from app.endpoints import nutrition
-from app.utils.envManager import get_env_variable, get_env_variable_safe
+from app.utils.envManager import get_env_variable_safe
 from app.middleware.exception_handlers import setup_exception_handlers
-import logfire
-
-logfire.configure(
-    send_to_logfire="if-token-present",
-    token=os.getenv("LOGFIRE_TOKEN", "default_token"),
-)
 
 
 @asynccontextmanager
@@ -47,6 +39,17 @@ app.add_middleware(
 
 app.include_router(nutrition.router, prefix="/nutrition")
 app.include_router(agent.router, prefix="/chat")
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
+@app.get("/")
+async def root():
+    """Serve the chat HTML page."""
+    from fastapi.responses import FileResponse
+
+    return FileResponse("app/static/chat_app.html")
+
 
 if __name__ == "__main__":
     host = get_env_variable_safe("HOST", "0.0.0.0")

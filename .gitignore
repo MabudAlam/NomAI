@@ -95,3 +95,6 @@ docs/_build/
 # Pyre type checker
 .pyre/
 
+
+/creds
+service.json
