@@ -17,6 +17,7 @@ Document structure:
 """
 
 import os
+import uuid
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
@@ -93,7 +94,9 @@ class ChatFirestore:
         text: str,
         role: str,
         sources: Optional[Dict[str, Any]] = None,
+        image_url: Optional[str] = None,
         timestamp: Optional[datetime] = None,
+        message_id: Optional[str] = None,
     ) -> str:
         """
         Add a message to Firestore.
@@ -104,14 +107,18 @@ class ChatFirestore:
             role: "user" or "model"
             sources: Optional nutrition analysis result
             timestamp: Optional timestamp (defaults to now)
+            message_id: Optional message ID (generated if not provided)
 
         Returns:
-            The message ID
+            The unique message ID
         """
         db = self._get_db()
 
         if timestamp is None:
             timestamp = datetime.now(timezone.utc)
+
+        if message_id is None:
+            message_id = f"msg_{timestamp.timestamp()}_{uuid.uuid4().hex[:8]}"
 
         doc_ref = db.collection("chats").document(user_id)
 
@@ -120,9 +127,12 @@ class ChatFirestore:
 
         messages = list(doc_dict.get("messages", []))
         messages.append({
+            "messageId": message_id,
             "text": text,
             "role": role,
             "sources": sources,
+            "image_url": image_url,
+            "isAddedToLogs": False,
             "timestamp": timestamp,
         })
 
@@ -131,11 +141,12 @@ class ChatFirestore:
         write_data = {
             "userId": user_id,
             "messages": messages,
+            
             "updatedAt": timestamp,
         }
 
         doc_ref.set(write_data, merge=True)
-        return f"msg_{timestamp.timestamp()}"
+        return message_id
 
     def get_messages(
         self,
@@ -180,14 +191,54 @@ class ChatFirestore:
                 timestamp = timestamp.isoformat()
             result.append(
                 {
+                    "messageId": msg.get("messageId"),
                     "role": msg.get("role", "user"),
                     "text": msg.get("text", ""),
+                    "image_url": msg.get("image_url"),
                     "sources": msg.get("sources"),
+                    "isAddedToLogs": msg.get("isAddedToLogs", False),
                     "timestamp": timestamp,
                 }
             )
 
         return result, total
+
+    def update_message_log_status(
+        self,
+        user_id: str,
+        message_id: str,
+        is_added_to_logs: bool,
+    ) -> bool:
+        """
+        Update the isAddedToLogs flag for a specific message.
+
+        Args:
+            user_id: The user ID
+            message_id: The unique message ID
+            is_added_to_logs: The new value for isAddedToLogs
+
+        Returns:
+            True if updated successfully, False otherwise
+        """
+        db = self._get_db()
+        doc_ref = db.collection("chats").document(user_id)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return False
+
+        doc_dict = doc.to_dict()
+        messages = doc_dict.get("messages", [])
+
+        for msg in messages:
+            if msg.get("messageId") == message_id:
+                msg["isAddedToLogs"] = is_added_to_logs
+                break
+        else:
+            return False
+
+        doc_ref.set({"messages": messages}, merge=True)
+        return True
 
     def get_all_messages_for_context(
         self,

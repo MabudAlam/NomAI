@@ -9,30 +9,365 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       * { font-family: 'Inter', sans-serif; }
-      .scrollbar-thin::-webkit-scrollbar { width: 6px; }
-      .scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-      .message-bubble { white-space: pre-wrap; }
-      .nutrition-card { animation: fadeIn 0.3s ease-out; }
-      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      .score-ring { stroke-dasharray: 251; }
-      .chip-selected { border-color: #10b981 !important; background-color: #d1fae5 !important; color: #065f46 !important; }
+
+      :root {
+        --dark-primary: #000000;
+        --dark-primary-variant: #B0BEC5;
+        --dark-primary-variant-2: #383838;
+        --dark-secondary: #434343;
+        --dark-secondary-variant: #757575;
+        --dark-success: #00C853;
+        --dark-success-variant: #66BB6A;
+        --dark-info: #2979FF;
+        --dark-info-variant: #80D8FF;
+        --dark-warning: #FFB300;
+        --dark-warning-variant: #FFCC80;
+        --dark-error: #D32F2F;
+        --dark-error-variant: #EF9A9A;
+        --dark-surface: #121212;
+        --dark-background: #1E1E1E;
+        --dark-on-primary: #FFFFFF;
+        --dark-on-secondary: #FFFFFF;
+        --dark-on-success: #000000;
+        --dark-on-info: #000000;
+        --dark-on-warning: #000000;
+        --dark-on-error: #FFFFFF;
+        --dark-on-surface: #FFFFFF;
+        --dark-on-background: #FFFFFF;
+
+        --light-grey-tile: #F9F8FD;
+        --grey-light: #EBEBEB;
+        --selected-tile: #212121;
+        --blue-grey: #514f62;
+        --gauge-color: rgba(128, 128, 128, 0.2);
+        --protein-color: #E91E63;
+        --carbs-color: #558B2F;
+        --fat-color: #2979FF;
+        --water-color: #0288D1;
+      }
+
+      body {
+        background-color: var(--dark-background);
+        color: var(--dark-on-background);
+        min-height: 100vh;
+      }
+
+      .app-container {
+        background-color: var(--dark-surface);
+        max-width: 3xl;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .header {
+        background-color: var(--dark-surface);
+        border-bottom: 1px solid var(--dark-secondary);
+      }
+
+      .header-title {
+        color: var(--dark-on-surface);
+      }
+
+      .header-subtitle {
+        color: var(--dark-secondary-variant);
+      }
+
+      .logo {
+        background: linear-gradient(135deg, var(--dark-success) 0%, var(--dark-success-variant) 100%);
+        color: var(--dark-on-success);
+      }
+
+      .messages-container {
+        background-color: var(--dark-background);
+      }
+
+      .user-message {
+        background: linear-gradient(135deg, var(--dark-success) 0%, var(--dark-success-variant) 100%);
+        color: var(--dark-on-success);
+      }
+
+      .ai-message {
+        background-color: var(--dark-surface);
+        border: 1px solid var(--dark-secondary);
+        color: var(--dark-on-surface);
+      }
+
+      .system-message {
+        background-color: var(--dark-info);
+        color: var(--dark-on-info);
+      }
+
+      .input-area {
+        background-color: var(--dark-surface);
+        border-top: 1px solid var(--dark-secondary);
+      }
+
+      .text-input {
+        background-color: var(--dark-primary-variant-2);
+        border: 1px solid var(--dark-secondary);
+        color: var(--dark-on-surface);
+      }
+
+      .text-input:focus {
+        border-color: var(--dark-success);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.2);
+      }
+
+      .text-input::placeholder {
+        color: var(--dark-secondary-variant);
+      }
+
+      .send-button {
+        background: linear-gradient(135deg, var(--dark-success) 0%, var(--dark-success-variant) 100%);
+        color: var(--dark-on-success);
+      }
+
+      .send-button:hover {
+        box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+        transform: scale(1.02);
+      }
+
+      .send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .chip {
+        border: 1px solid var(--dark-secondary);
+        color: var(--dark-secondary-variant);
+        background-color: transparent;
+        transition: all 0.2s ease;
+      }
+
+      .chip:hover {
+        border-color: var(--dark-success);
+        color: var(--dark-success);
+      }
+
+      .chip-selected {
+        border-color: var(--dark-success) !important;
+        background-color: rgba(0, 200, 83, 0.15) !important;
+        color: var(--dark-success) !important;
+      }
+
+      .modal-overlay {
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+      }
+
+      .modal-content {
+        background-color: var(--dark-surface);
+        border: 1px solid var(--dark-secondary);
+      }
+
+      .modal-header {
+        background: linear-gradient(135deg, var(--dark-success) 0%, var(--dark-success-variant) 100%);
+        color: var(--dark-on-success);
+      }
+
+      .modal-close-btn {
+        color: var(--dark-on-success);
+      }
+
+      .modal-close-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .modal-body {
+        background-color: var(--dark-surface);
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+
+      .modal-footer {
+        background-color: var(--grey-light);
+        border-top: 1px solid var(--dark-secondary);
+      }
+
+      .modal-label {
+        color: var(--dark-secondary-variant);
+      }
+
+      .clear-btn {
+        border: 1px solid var(--dark-secondary);
+        color: var(--dark-on-surface);
+        background-color: transparent;
+      }
+
+      .clear-btn:hover {
+        background-color: var(--dark-secondary);
+      }
+
+      .typing-indicator {
+        background-color: var(--dark-background);
+      }
+
+      .typing-dot {
+        background-color: var(--dark-secondary-variant);
+      }
+
+      .typing-text {
+        color: var(--dark-secondary-variant);
+      }
+
+      .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: var(--dark-secondary);
+        border-radius: 3px;
+      }
+
+      .nutrition-card {
+        animation: fadeIn 0.3s ease-out;
+        border: 1px solid var(--dark-secondary);
+      }
+
+      .nutrition-header {
+        background-color: var(--dark-primary-variant-2);
+        border-bottom: 1px solid var(--dark-secondary);
+      }
+
+      .nutrition-title {
+        color: var(--dark-on-surface);
+      }
+
+      .nutrition-subtitle {
+        color: var(--dark-secondary-variant);
+      }
+
+      .macro-box {
+        background-color: var(--dark-primary-variant-2);
+      }
+
+      .macro-label {
+        color: var(--dark-secondary-variant);
+      }
+
+      .macro-value {
+        color: var(--dark-on-surface);
+      }
+
+      .macro-unit {
+        color: var(--dark-secondary-variant);
+      }
+
+      .ingredients-section {
+        border-top: 1px solid var(--dark-secondary);
+      }
+
+      .ingredients-label {
+        color: var(--dark-secondary-variant);
+      }
+
+      .ingredient-name {
+        color: var(--dark-on-surface);
+      }
+
+      .ingredient-detail {
+        color: var(--dark-secondary-variant);
+      }
+
+      .health-comments {
+        background-color: rgba(41, 121, 255, 0.1);
+        border-top: 1px solid var(--dark-secondary);
+        color: var(--dark-on-surface);
+      }
+
+      .concerns-section {
+        border-top: 1px solid var(--dark-secondary);
+      }
+
+      .concern-issue {
+        color: var(--dark-error);
+      }
+
+      .concern-explanation {
+        color: var(--dark-secondary-variant);
+      }
+
+      .alternatives-section {
+        border-top: 1px solid var(--dark-secondary);
+      }
+
+      .alternative-label {
+        color: var(--dark-success);
+      }
+
+      .alternative-box {
+        background-color: rgba(0, 200, 83, 0.05);
+        border: 1px solid rgba(0, 200, 83, 0.2);
+      }
+
+      .alternative-name {
+        color: var(--dark-on-surface);
+      }
+
+      .alternative-detail {
+        color: var(--dark-secondary-variant);
+      }
+
+      .score-badge {
+        border-radius: 50%;
+        border: 2px solid;
+      }
+
+      .score-badge-high {
+        border-color: var(--dark-success);
+        color: var(--dark-success);
+      }
+
+      .score-badge-medium {
+        border-color: var(--dark-warning);
+        color: var(--dark-warning);
+      }
+
+      .score-badge-low {
+        border-color: var(--dark-error);
+        color: var(--dark-error);
+      }
+
+      .score-badge-bg {
+        background-color: var(--dark-success);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .header-btn {
+        color: var(--dark-secondary-variant);
+      }
+
+      .header-btn:hover {
+        background-color: var(--dark-secondary);
+      }
     </style>
   </head>
-  <body class="bg-gray-100 min-h-screen">
-    <div class="flex flex-col h-screen max-w-3xl mx-auto bg-white shadow-xl">
+  <body>
+    <div class="flex flex-col h-screen max-w-3xl mx-auto app-container">
 
       <!-- Header -->
-      <header class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+      <header class="flex items-center justify-between px-6 py-4 header sticky top-0 z-10">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+          <div class="w-10 h-10 rounded-xl logo flex items-center justify-center font-bold text-lg shadow-lg">
             N
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">NomAI</h1>
-            <p class="text-xs text-gray-500">Your Nutrition Assistant</p>
+            <h1 class="text-lg font-bold header-title">NomAI</h1>
+            <p class="text-xs header-subtitle">Your Nutrition Assistant</p>
           </div>
         </div>
-        <button id="profileBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Profile">
+        <button id="profileBtn" class="p-2 rounded-lg header-btn transition-colors" title="Profile">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
           </svg>
@@ -40,81 +375,81 @@
       </header>
 
       <!-- Messages Container -->
-      <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50 scrollbar-thin">
+      <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-6 messages-container scrollbar-thin">
         <!-- Messages will be inserted here -->
       </div>
 
       <!-- Typing Indicator -->
-      <div id="typingIndicator" class="hidden px-6 py-4 bg-gray-50">
-        <div class="flex items-center gap-3 text-sm text-gray-500">
+      <div id="typingIndicator" class="hidden px-6 py-4 typing-indicator">
+        <div class="flex items-center gap-3 text-sm">
           <div class="flex gap-1">
-            <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+            <span class="w-2 h-2 rounded-full animate-bounce typing-dot" style="animation-delay: 0ms"></span>
+            <span class="w-2 h-2 rounded-full animate-bounce typing-dot" style="animation-delay: 150ms"></span>
+            <span class="w-2 h-2 rounded-full animate-bounce typing-dot" style="animation-delay: 300ms"></span>
           </div>
-          <span>Analyzing your meal...</span>
+          <span class="typing-text">Analyzing your meal...</span>
         </div>
       </div>
 
       <!-- Input Area -->
-      <div class="p-4 border-t border-gray-200 bg-white">
+      <div class="p-4 input-area">
         <div class="flex gap-3">
-          <input id="messageInput" type="text" placeholder="Describe your meal..." class="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" />
-          <button id="sendButton" class="px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold text-sm hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <input id="messageInput" type="text" placeholder="Describe your meal..." class="flex-1 px-4 py-3 rounded-xl text-input text-sm transition-all" />
+          <button id="sendButton" class="px-6 py-3 rounded-xl send-button font-semibold text-sm transition-all">
             Analyze
           </button>
         </div>
-        <div class="flex gap-3 mt-3 items-center text-xs text-gray-500">
-          <input id="userIdInput" type="text" placeholder="User ID" class="px-3 py-1.5 rounded-lg border border-gray-200 w-36 outline-none focus:ring-2 focus:ring-green-500" />
-          <input id="imageUrlInput" type="text" placeholder="Or paste an image URL here..." class="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 outline-none focus:ring-2 focus:ring-green-500" />
+        <div class="flex gap-3 mt-3 items-center text-xs">
+          <input id="userIdInput" type="text" placeholder="User ID" class="px-3 py-1.5 rounded-lg text-input w-36 text-sm outline-none focus:ring-2 focus:ring-green-500" />
+          <input id="imageUrlInput" type="text" placeholder="Or paste an image URL here..." class="flex-1 px-3 py-1.5 rounded-lg text-input text-sm outline-none focus:ring-2 focus:ring-green-500" />
         </div>
       </div>
 
       <!-- Profile Modal -->
-      <div id="profileModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl">
-          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+      <div id="profileModal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+        <div class="rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl">
+          <div class="flex items-center justify-between px-6 py-4 modal-header">
             <h2 class="text-lg font-bold">Your Profile</h2>
-            <button id="closeModal" class="p-2 rounded-lg hover:bg-white/20 transition-colors">
+            <button id="closeModal" class="p-2 rounded-lg modal-close-btn transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
-          <div class="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+          <div class="p-6 space-y-6 modal-body">
             <div>
-              <label class="text-sm font-semibold text-gray-700 block mb-3">Dietary Preferences</label>
+              <label class="text-sm font-semibold modal-label block mb-3">Dietary Preferences</label>
               <div class="flex flex-wrap gap-2" id="dietaryOptions">
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="vegetarian">Vegetarian</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="vegan">Vegan</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="low-carb">Low Carb</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="high-protein">High Protein</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="keto">Keto</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="gluten-free">Gluten Free</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="vegetarian">Vegetarian</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="vegan">Vegan</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="low-carb">Low Carb</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="high-protein">High Protein</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="keto">Keto</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="gluten-free">Gluten Free</button>
               </div>
             </div>
             <div>
-              <label class="text-sm font-semibold text-gray-700 block mb-3">Allergies</label>
+              <label class="text-sm font-semibold modal-label block mb-3">Allergies</label>
               <div class="flex flex-wrap gap-2" id="allergyOptions">
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="nuts">Nuts</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="dairy">Dairy</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="eggs">Eggs</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="soy">Soy</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="wheat">Wheat</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="nuts">Nuts</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="dairy">Dairy</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="eggs">Eggs</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="soy">Soy</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="wheat">Wheat</button>
               </div>
             </div>
             <div>
-              <label class="text-sm font-semibold text-gray-700 block mb-3">Health Goals</label>
+              <label class="text-sm font-semibold modal-label block mb-3">Health Goals</label>
               <div class="flex flex-wrap gap-2" id="goalsOptions">
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="weight-loss">Weight Loss</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="muscle-gain">Muscle Gain</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="maintenance">Maintenance</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="energy">Energy Boost</button>
-                <button class="chip px-3 py-1.5 rounded-full border border-gray-200 text-sm transition-colors" data-value="heart-health">Heart Health</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="weight-loss">Weight Loss</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="muscle-gain">Muscle Gain</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="maintenance">Maintenance</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="energy">Energy Boost</button>
+                <button class="chip px-3 py-1.5 rounded-full text-sm" data-value="heart-health">Heart Health</button>
               </div>
             </div>
           </div>
-          <div class="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
-            <button id="clearProfile" class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-100 transition-colors">Clear All</button>
-            <button id="saveProfile" class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold hover:shadow-lg transition-colors ml-auto">Save Profile</button>
+          <div class="flex gap-3 px-6 py-4 modal-footer">
+            <button id="clearProfile" class="px-4 py-2 rounded-lg clear-btn text-sm transition-colors">Clear All</button>
+            <button id="saveProfile" class="px-4 py-2 rounded-lg send-button text-sm font-semibold transition-colors ml-auto">Save Profile</button>
           </div>
         </div>
       </div>
@@ -123,8 +458,8 @@
     <script>
       class ChatApp {
         constructor() {
-          this.chatApiBase = `${window.location.protocol}//${window.location.host}/chat`;
-          this.userApiBase = `${window.location.protocol}//${window.location.host}/user`;
+          this.chatApiBase = `${window.location.protocol}//${window.location.host}/api/v1/chat`;
+          this.userApiBase = `${window.location.protocol}//${window.location.host}/api/v1/users`;
           this.messages = document.getElementById('messages');
           this.messageInput = document.getElementById('messageInput');
           this.sendButton = document.getElementById('sendButton');
@@ -243,20 +578,21 @@
           }
 
           try {
-            const res = await fetch(`${this.userApiBase}/chats?user_id=${encodeURIComponent(this.userId)}&offset=0&limit=50`);
+            const res = await fetch(`${this.userApiBase}?user_id=${encodeURIComponent(this.userId)}&offset=0&limit=50`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             this.messages.innerHTML = '';
             for (const msg of data.messages || []) {
-              const msgData = { 
-                role: msg.role, 
-                content: msg.text || msg.content || '', 
-                nutrition_data: msg.sources?.nutrition_data 
+              const msgData = {
+                role: msg.role,
+                content: msg.text || msg.content || '',
+                image_url: msg.image_url,
+                nutrition_data: msg.sources?.nutrition_data
               };
               this.addMessage(msgData);
             }
-          } catch (err) { 
-            this.addMessage({ role: 'system', content: `Error loading messages: ${err.message}` }); 
+          } catch (err) {
+            this.addMessage({ role: 'system', content: `Error loading messages: ${err.message}` });
           }
         }
 
@@ -273,29 +609,30 @@
           const imageUrl = this.imageUrlInput.value.trim() || null;
           const currentProfile = this.getCurrentProfile();
 
-          const userMsg = { role: 'user', content: message || '[Image URL provided]' };
+          const userMsg = { role: 'user', content: message || '[Image provided]', image_url: imageUrl };
           this.addMessage(userMsg);
           this.messageInput.value = '';
+          this.imageUrlInput.value = '';
           this.setTyping(true);
           this.currentAssistantMessage = null;
 
           try {
-            const res = await fetch(`${this.chatApiBase}/message`, {
+            const res = await fetch(`${this.chatApiBase}/messages`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                text: message, 
-                user_id: this.userId, 
-                image_url: imageUrl, 
-                image_data: null, 
-                local_time: new Date().toISOString(), 
+              body: JSON.stringify({
+                text: message,
+                user_id: this.userId,
+                image_url: imageUrl,
+                image_data: null,
+                local_time: new Date().toISOString(),
                 ...currentProfile
               })
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             await this.processResponse(await res.json());
-          } catch (err) { 
-            this.addMessage({ role: 'system', content: `Error: ${err.message}` }); 
+          } catch (err) {
+            this.addMessage({ role: 'system', content: `Error: ${err.message}` });
           }
           finally { this.setTyping(false); this.currentAssistantMessage = null; }
         }
@@ -311,15 +648,19 @@
         addMessage(data) {
           const div = document.createElement('div');
           div.className = `flex ${data.role === 'user' ? 'justify-end' : 'justify-start'}`;
-          div.dataset.role = data.role;
 
           if (data.role === 'user') {
-            div.innerHTML = `<div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-3 rounded-2xl rounded-br-md max-w-[85%] shadow-lg"><p class="text-sm">${this.escapeHtml(data.content)}</p></div>`;
+            let messageHtml = '';
+            if (data.image_url) {
+              messageHtml += `<img src="${this.escapeHtml(data.image_url)}" alt="User image" class="mb-2 max-w-full h-40 object-contain rounded-lg" />`;
+            }
+            messageHtml += `<p class="text-sm">${this.escapeHtml(data.content)}</p>`;
+            div.innerHTML = `<div class="user-message px-5 py-3 rounded-2xl rounded-br-md max-w-[85%] shadow-lg">${messageHtml}</div>`;
           } else if (data.role === 'system') {
-            div.innerHTML = `<div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-xl rounded-bl-md text-xs">${this.escapeHtml(data.content)}</div>`;
+            div.innerHTML = `<div class="system-message px-4 py-2 rounded-xl rounded-bl-md text-xs">${this.escapeHtml(data.content)}</div>`;
           } else {
             const bubble = document.createElement('div');
-            bubble.className = 'bg-white px-5 py-4 rounded-2xl rounded-bl-md shadow-lg max-w-[85%] w-full';
+            bubble.className = 'ai-message px-5 py-4 rounded-2xl rounded-bl-md shadow-lg max-w-[85%] w-full';
 
             let contentText = data.content || '';
             let html = '';
@@ -357,56 +698,59 @@
           const totalCarbs = ingredients.reduce((s, i) => s + (i.carbs || 0), 0);
           const totalFat = ingredients.reduce((s, i) => s + (i.fat || 0), 0);
 
+          const scoreColor = healthScore >= 8 ? 'var(--dark-success)' : healthScore >= 5 ? 'var(--dark-warning)' : 'var(--dark-error)';
+          const scoreBg = healthScore >= 8 ? 'rgba(0, 200, 83, 0.1)' : healthScore >= 5 ? 'rgba(255, 179, 0, 0.1)' : 'rgba(211, 47, 47, 0.1)';
+
           let html = `
-          <div class="nutrition-card mt-4 border border-gray-200 rounded-xl overflow-hidden">
-            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+          <div class="nutrition-card mt-4 rounded-xl overflow-hidden">
+            <div class="nutrition-header px-4 py-3 flex items-center justify-between">
               <div>
-                <h3 class="font-semibold text-gray-900">${this.escapeHtml(foodName)}</h3>
-                <p class="text-xs text-gray-500">${portionSize}${portion} • Confidence: ${confidence}/10</p>
+                <h3 class="font-semibold nutrition-title">${this.escapeHtml(foodName)}</h3>
+                <p class="text-xs nutrition-subtitle">${portionSize}${portion} • Confidence: ${confidence}/10</p>
               </div>
               <div class="text-center">
                 <div class="relative w-14 h-14">
                   <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
-                    <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                    <path class="${healthScore >= 8 ? 'text-green-500' : healthScore >= 5 ? 'text-yellow-500' : 'text-red-500'}" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="${healthScore * 10}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <path class="text-gray-700" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <path style="color: ${scoreColor}" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="${healthScore * 10}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                   </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-sm font-bold ${healthScore >= 8 ? 'text-green-600' : healthScore >= 5 ? 'text-yellow-600' : 'text-red-600'}">${healthScore}</span>
+                  <span class="absolute inset-0 flex items-center justify-center text-sm font-bold" style="color: ${scoreColor}">${healthScore}</span>
                 </div>
-                <p class="text-[10px] text-gray-500 mt-1">out of 10</p>
+                <p class="text-[10px] nutrition-subtitle mt-1">out of 10</p>
               </div>
             </div>
 
-            <div class="grid grid-cols-4 gap-2 p-4 bg-white">
-              <div class="text-center p-2 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-500 mb-1">Calories</p>
-                <p class="font-bold text-gray-900">${totalCalories}</p>
-                <p class="text-[10px] text-gray-400">kcal</p>
+            <div class="grid grid-cols-4 gap-2 p-4" style="background-color: var(--dark-surface);">
+              <div class="text-center p-2 macro-box rounded-lg">
+                <p class="text-xs macro-label mb-1">Calories</p>
+                <p class="font-bold macro-value">${totalCalories}</p>
+                <p class="text-[10px] macro-unit">kcal</p>
               </div>
-              <div class="text-center p-2 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-500 mb-1">Protein</p>
-                <p class="font-bold text-gray-900">${totalProtein}g</p>
-                <p class="text-[10px] text-gray-400">grams</p>
+              <div class="text-center p-2 macro-box rounded-lg">
+                <p class="text-xs macro-label mb-1">Protein</p>
+                <p class="font-bold macro-value">${totalProtein}g</p>
+                <p class="text-[10px] macro-unit">grams</p>
               </div>
-              <div class="text-center p-2 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-500 mb-1">Carbs</p>
-                <p class="font-bold text-gray-900">${totalCarbs}g</p>
-                <p class="text-[10px] text-gray-400">grams</p>
+              <div class="text-center p-2 macro-box rounded-lg">
+                <p class="text-xs macro-label mb-1">Carbs</p>
+                <p class="font-bold macro-value">${totalCarbs}g</p>
+                <p class="text-[10px] macro-unit">grams</p>
               </div>
-              <div class="text-center p-2 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-500 mb-1">Fat</p>
-                <p class="font-bold text-gray-900">${totalFat}g</p>
-                <p class="text-[10px] text-gray-400">grams</p>
+              <div class="text-center p-2 macro-box rounded-lg">
+                <p class="text-xs macro-label mb-1">Fat</p>
+                <p class="font-bold macro-value">${totalFat}g</p>
+                <p class="text-[10px] macro-unit">grams</p>
               </div>
             </div>
 
             ${ingredients.length > 0 ? `
-            <div class="px-4 py-3 border-t border-gray-100">
-              <p class="text-xs font-semibold text-gray-700 mb-2">Ingredients Breakdown</p>
+            <div class="ingredients-section px-4 py-3">
+              <p class="text-xs font-semibold modal-label mb-2">Ingredients Breakdown</p>
               <div class="space-y-2">
                 ${ingredients.map(ing => `
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-gray-700">${this.escapeHtml(ing.name)}</span>
-                    <span class="text-gray-500">${ing.calories || 0} cal • ${ing.protein || 0}g P • ${ing.carbs || 0}g C • ${ing.fat || 0}g F</span>
+                    <span class="ingredient-name">${this.escapeHtml(ing.name)}</span>
+                    <span class="ingredient-detail">${ing.calories || 0} cal • ${ing.protein || 0}g P • ${ing.carbs || 0}g C • ${ing.fat || 0}g F</span>
                   </div>
                 `).join('')}
               </div>
@@ -414,34 +758,34 @@
             ` : ''}
 
             ${nutrition.overallHealthComments ? `
-            <div class="px-4 py-3 border-t border-gray-100 bg-blue-50/50">
-              <p class="text-xs text-gray-700">${this.escapeHtml(nutrition.overallHealthComments)}</p>
+            <div class="health-comments px-4 py-3">
+              <p class="text-xs">${this.escapeHtml(nutrition.overallHealthComments)}</p>
             </div>
             ` : ''}
 
             ${concerns.length > 0 ? `
-            <div class="px-4 py-3 border-t border-gray-100">
-              <p class="text-xs font-semibold text-red-600 mb-2">⚠️ Concerns</p>
+            <div class="concerns-section px-4 py-3">
+              <p class="text-xs font-semibold concern-issue mb-2">⚠️ Concerns</p>
               ${concerns.map(c => `
                 <div class="mb-2">
-                  <p class="text-xs font-medium text-red-700">${this.escapeHtml(c.issue)}</p>
-                  <p class="text-xs text-gray-600 mt-0.5">${this.escapeHtml(c.explanation)}</p>
+                  <p class="text-xs font-medium concern-issue">${this.escapeHtml(c.issue)}</p>
+                  <p class="text-xs concern-explanation mt-0.5">${this.escapeHtml(c.explanation)}</p>
                 </div>
               `).join('')}
             </div>
             ` : ''}
 
             ${alternatives.length > 0 ? `
-            <div class="px-4 py-3 border-t border-gray-100">
-              <p class="text-xs font-semibold text-green-700 mb-2">💡 Healthier Alternatives</p>
+            <div class="alternatives-section px-4 py-3">
+              <p class="text-xs font-semibold alternative-label mb-2">💡 Healthier Alternatives</p>
               <div class="space-y-2">
                 ${alternatives.slice(0, 3).map(alt => `
-                  <div class="flex items-center justify-between p-2 bg-green-50/50 rounded-lg">
+                  <div class="alternative-box flex items-center justify-between p-2 rounded-lg">
                     <div>
-                      <p class="text-xs font-medium text-gray-800">${this.escapeHtml(alt.name)}</p>
-                      <p class="text-[10px] text-gray-500">${alt.calories || 0} cal • ${alt.protein || 0}g P</p>
+                      <p class="text-xs font-medium alternative-name">${this.escapeHtml(alt.name)}</p>
+                      <p class="text-[10px] alternative-detail">${alt.calories || 0} cal • ${alt.protein || 0}g P</p>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${(alt.healthScore || 0) >= 8 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${alt.healthScore || 0}/10</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${(alt.healthScore || 0) >= 8 ? 'score-badge-high' : 'score-badge-medium'}" style="background-color: ${(alt.healthScore || 0) >= 8 ? 'rgba(0, 200, 83, 0.15)' : 'rgba(255, 179, 0, 0.15)'}">${alt.healthScore || 0}/10</span>
                   </div>
                 `).join('')}
               </div>
