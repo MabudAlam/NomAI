@@ -21,15 +21,18 @@ from app.services.chat_firestore import chat_firestore
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-PROVIDER_TYPE = os.getenv("PROVIDER_TYPE", "gemini").lower()
-
 _model = None
 _model2 = None
 
 
+def _get_provider_type() -> str:
+    return os.getenv("PROVIDER_TYPE", "gemini").lower()
+
+
 def get_model() -> Any:
     global _model, _model2
-    if PROVIDER_TYPE == "gemini":
+    provider_type = _get_provider_type()
+    if provider_type == "gemini":
         if _model is None:
             _model = init_chat_model(
                 model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
