@@ -43,97 +43,60 @@ class PromptService:
         selectedDiet: list = None,
         selectedAllergy: list = None,
         imageUrl: str = None,
+        web_research_context: str = None,
+        enriched_query: str = None,
     ) -> str:
         """Generate the complete nutrition analysis prompt."""
         dietary_context = PromptService.get_dietary_context(
             selectedGoal, selectedDiet, selectedAllergy
         )
-        user_message_instruction = PromptService.get_user_message_instruction(
-            user_message
-        )
+
+        web_context_section = ""
+        if web_research_context:
+            web_context_section = f"""
+NUTRITION DATA FROM WEB SEARCH:
+{web_research_context}
+
+IMPORTANT: Extract actual nutrition values (calories, protein, carbs, fat, fiber, sodium, sugar) from the search results above.
+- Prioritize values from USDA, FDA, or official manufacturer sources.
+- Ignore app promotional content, FAQ pages, and non-nutrition pages.
+- If search results are empty or unhelpful, use your knowledge of typical nutrition values for this food type.
+- Calculate totals for the actual quantity mentioned.
+"""
+
+        enriched_query_section = ""
+        if enriched_query:
+            enriched_query_section = f"""
+IDENTIFIED FOOD: "{enriched_query}"
+"""
 
         return f"""
-Analyze the food product, product name and its nutrition label. Provide response in this strict JSON format:
+You are a nutrition expert. Analyze the food and provide accurate nutrition information.
 
-Some dietary context is provided to you.
+{ dietary_context}
 
-{dietary_context}
+{enriched_query_section}
 
-ANALYSIS FRAMEWORK:
+{web_context_section}
 
-STEP 1 - QUANTITY IDENTIFICATION:
-- Extract EXACT quantity from user description
-- Identify specific brand if mentioned
-- Note any size specifications (mini, regular, king-size, etc.)
+RULES:
+1. Use EXACT quantities mentioned by the user
+2. Calculate TOTAL nutrition for the quantity described (not per serving)
+3. Consider user's dietary preferences and allergies in your analysis
+4. confidenceScore: How confident you are in the data (10=very confident, based on authoritative sources)
+5. Return ONLY valid JSON
 
-STEP 2 - DATABASE LOOKUP:
-- Find authoritative nutritional data for the specific food/brand
-- Use per-unit values (per cookie, per chip, per slice)
-- Verify data accuracy across multiple sources
-
-STEP 3 - MATHEMATICAL CALCULATION:
-- Multiply per-unit values by exact quantity mentioned
-- Calculate total calories: (per-unit calories) × (quantity)
-- Calculate total macros: (per-unit macro) × (quantity)
-- Ensure macro calories sum correctly
-
-STEP 4 - CONTEXTUAL ANALYSIS:
-- Consider dietary preferences and restrictions
-- Assess health impact relative to user's goals
-- Provide evidence-based recommendations
-
-OUTPUT REQUIREMENTS:
-1. foodName: Use EXACT food name from user description
-2. Nutritional values: Must reflect TOTAL amount described, not per-unit
-3. Portion size: Convert to appropriate unit (gram weight preferred for accuracy)
-4. Health assessment: Evidence-based, considering user's dietary context
-
-MANDATORY JSON STRUCTURE:
-1. The main food name (foodName)
-   - If the user mentioned a specific food name in their message, use that exact name
-   - If not a food image, return an error message stating "No food detected in image"
-
-2. A detailed list of all identified ingredients with these properties for each:
-   - name: Precise ingredient name
-   - calories: Estimated calories (integer)
-   - protein: Protein content in grams (integer)
-   - carbs: Carbohydrate content in grams (integer)
-   - fiber: Fiber content in grams (integer)
-   - fat: Fat content in grams (integer)
-   - healthScore: Rating from 0-10 where 10 is healthiest (integer)
-   - healthComments: Brief assessment of nutritional value. Include guidance to "enjoy" or "eat in moderation" as appropriate.
-
-3. Portion information:
-   - portion: Unit type (must be one of: "cup", "gram",  "slices", "piece",)
-   - portionSize: Numeric amount (can be decimal like 0.5) 
-   - Portion size should be based on the most common serving size for the food item
-   - If the portion size is not clear, use a reasonable estimate based on the image
-
-4. Primary nutritional concerns for this food:
-   - issue: Brief name of the nutritional concern (e.g. "High sodium", "Low protein", "Excessive sugar")
-   - explanation: Clear explanation of the health impact of this concern
-   - recommendations: List of complementary foods to add, with:
-     * food: Name of food to add
-     * quantity: Recommended amount
-     * reasoning: How this food addresses the nutritional concern
-
-5. Suggest 2-3 healthier alternative ingredients when applicable with same nutritional property structure
-
-6. confidenceScore: A score from 0-10 indicating the confidence in the analysis (integer)
-
-7. ImageURL should be based on the prompt user provides , if no image is provided return empty string
-
-The final JSON should exactly follow this structure:
+JSON format:
 {{
-  "status": "SUCCESS",
-  "message": string,
-  "foodName": string,
-  "portion": string (one of: "cup", "gram", "slices", "piece"),
+  "status": "SUCCESS" or "ERROR",
+  "message": "brief note",
+  "foodName": "exact food name from user",
+  "portion": "gram" or "piece" or "slices" or "cup",
   "portionSize": number,
-  "imageUrl": string {imageUrl if imageUrl else ""},
+  "imageUrl": "{imageUrl if imageUrl else ""}",
   "ingredients": [
     {{
-      "name": string,
+      "name": "ingredient name",
       "calories": integer,
       "protein": integer,
       "carbs": integer,
@@ -141,52 +104,19 @@ The final JSON should exactly follow this structure:
       "fat": integer,
       "sugar": integer (optional),
       "sodium": integer (optional),
-      "healthScore": integer (0-10),
-      "healthComments": string
+      "healthScore": integer 0-10,
+      "healthComments": "brief comment"
     }}
   ],
-  "primaryConcerns": [
-    {{
-      "issue": string,
-      "explanation": string,
-      "recommendations": [
-        {{
-          "food": string,
-          "quantity": string,
-          "reasoning": string
-        }}
-      ]
-    }}
-  ],
-  "suggestAlternatives": [
-    {{same structure as ingredients}}
-  ],
-  "overallHealthScore": integer (0-10),
-  "overallHealthComments": string
+  "primaryConcerns": [{{"issue": "concern name", "explanation": "why", "recommendations": [{{"food": "food name", "quantity": "amount", "reasoning": "why helpful"}}]}}],
+  "suggestAlternatives": [{{"name": "alt food", "calories": integer, "protein": integer, "carbs": integer, "fiber": integer, "fat": integer, "healthScore": integer, "healthComments": "comment"}}],
+  "overallHealthScore": integer 0-10,
+  "overallHealthComments": "overall assessment"
 }}
 
-If the image does not contain food, return:
-{{
-  "status": "ERROR",
-  "message": "No food detected in image",
-  "foodName": "Error: No food detected",
-  "portion": "cup",
-  "portionSize": 0,
-  "ingredients": [],
-  "primaryConcerns": [],
-  "suggestAlternatives": [],
-  "overallHealthScore": 0,
-  "overallHealthComments": "No food detected in image"
-}}
-
-If the user has provided specific information about the food name, portion size, or nutritional content in their message, prioritize that information in your analysis.
-
-Ensure all nutrition values are reasonable estimates for the visible portions and that the JSON is valid and properly formatted according to the schema.
-
-{user_message_instruction}
-
-User message: {user_message}
-        """
+User described: "{user_message}"
+Only analyze what the user explicitly mentions. If no food, return status "ERROR".
+"""
 
     @staticmethod
     def get_nutrition_analysis_prompt_from_description(
