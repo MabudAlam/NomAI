@@ -98,3 +98,5 @@ docs/_build/
 
 /creds
 service.json
+
+/debug_output

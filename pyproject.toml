@@ -128,6 +128,8 @@ dependencies = [
     "pytest-asyncio>=0.24.0",
     "langchain-openrouter>=0.2.1",
     "openrouter>=0.9.1",
+    "langchain-community>=0.4.1",
+    "ddgs>=9.14.0",
 ]
 
 [build-system]
