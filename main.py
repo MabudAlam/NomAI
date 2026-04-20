@@ -37,9 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(nutrition.router, prefix="/nutrition")
-app.include_router(chat.router, prefix="/user")
-app.include_router(agent.router, prefix="/chat")
+app.include_router(nutrition.router, prefix="/api/v1/nutrition")
+app.include_router(chat.router, prefix="/api/v1/users")
+app.include_router(agent.router, prefix="/api/v1/chat")
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

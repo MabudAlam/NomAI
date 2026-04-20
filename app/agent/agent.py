@@ -1,8 +1,11 @@
+"""
+Chat API endpoints.
+"""
 import ast
 import json
 import logging
 import os
-from typing import Any, List, Optional
+from typing import Any, List
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -14,7 +17,6 @@ from langchain_openrouter import ChatOpenRouter
 from app.agent.tools import analyse_food_description, analyse_image
 from app.models.chat_models import SendMessageRequest
 from app.services.chat_firestore import chat_firestore
-
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -44,65 +46,14 @@ def get_model() -> Any:
         return _model2
 
 
-tools = [analyse_image, analyse_food_description]
-
-
-def extract_text_content(content: Any) -> str:
-    """Extract clean text from message content that can be string or list of blocks."""
-    if not content:
-        return ""
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        text_parts = []
-        for block in content:
-            if isinstance(block, dict):
-                if block.get("type") == "text":
-                    text_parts.append(block.get("text", ""))
-                elif block.get("type") == "image":
-                    text_parts.append("[image]")
-            elif isinstance(block, str):
-                text_parts.append(block)
-        return " ".join(text_parts)
-    return str(content)
-
-
-def parse_tool_response(tool_response: Any) -> Any:
-    """Parse tool response string into proper JSON dict."""
-    if isinstance(tool_response, dict):
-        return tool_response
-    if isinstance(tool_response, str):
-        try:
-            return json.loads(tool_response)
-        except json.JSONDecodeError:
-            try:
-                return ast.literal_eval(tool_response)
-            except (ValueError, SyntaxError):
-                return {"raw": tool_response}
-    return tool_response
-
-
-def extract_final_response(messages: list) -> dict:
-    ai_answer = ""
-    tool_responses = []
-
-    for msg in messages:
-        if isinstance(msg, AIMessage):
-            if not msg.tool_calls:
-                text = extract_text_content(msg.content)
-                if text:
-                    ai_answer = text
-        elif isinstance(msg, ToolMessage):
-            tool_responses.append({
-                "tool_call_id": msg.tool_call_id,
-                "name": msg.name,
-                "content": parse_tool_response(msg.content),
-            })
-
-    return {
-        "ai_answer": ai_answer,
-        "tool_responses": tool_responses,
-    }
+def build_agent_message(text: str, image_url: str | None, image_data: str | None) -> str:
+    """Build structured message for the agent with clear context about image."""
+    if image_url or image_data:
+        image_info = f"[IMAGE_PROVIDED]\nimage_url: {image_url or 'base64_image_provided'}"
+        if text:
+            return f"{image_info}\n\nuser_message: {text}"
+        return image_info
+    return f"user_message: {text}"
 
 
 def get_system_prompt(
@@ -232,72 +183,150 @@ Structure responses with:
 4. **Additional Context**: Share relevant nutritional science or tips
 5. **Safety Note**: Include appropriate disclaimers when needed
 
-Remember: Your goal is to empower users with knowledge and practical tools to make informed nutrition decisions that support their health and lifestyle goals."""
+Remember: Your goal is to empower users with knowledge and practical tools to make informed nutrition decisions that support their health and lifestyle goals.
+## User Profile Context
+- Dietary Preferences: {", ".join(dietary_preferences) if dietary_preferences else "None specified"}
+- Allergies: {", ".join(allergies) if allergies else "None specified"}
+- Health Goals: {", ".join(selected_goals) if selected_goals else "None specified"}
+"""
 
 
-@router.post("/message")
+def extract_text_content(content: Any) -> str:
+    """Extract clean text from message content."""
+    if not content:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        text_parts = []
+        for block in content:
+            if isinstance(block, dict):
+                if block.get("type") == "text":
+                    text_parts.append(block.get("text", ""))
+                elif block.get("type") == "image":
+                    text_parts.append("[image]")
+            elif isinstance(block, str):
+                text_parts.append(block)
+        return " ".join(text_parts)
+    return str(content)
+
+
+def parse_tool_response(tool_response: Any) -> Any:
+    """Parse tool response string into proper JSON dict."""
+    import ast
+    import json
+    if isinstance(tool_response, dict):
+        return tool_response
+    if isinstance(tool_response, str):
+        try:
+            return json.loads(tool_response)
+        except json.JSONDecodeError:
+            try:
+                return ast.literal_eval(tool_response)
+            except (ValueError, SyntaxError):
+                return {"raw": tool_response}
+    return tool_response
+
+
+def extract_final_response(messages: list) -> dict:
+    ai_answer = ""
+    tool_responses = []
+
+    for msg in messages:
+        if hasattr(msg, "type") and msg.type == "tool":
+            tool_responses.append({
+                "tool_call_id": msg.tool_call_id,
+                "name": msg.name,
+                "content": parse_tool_response(msg.content),
+            })
+        elif hasattr(msg, "tool_calls") and not msg.tool_calls:
+            text = extract_text_content(msg.content)
+            if text:
+                ai_answer = text
+
+    return {
+        "ai_answer": ai_answer,
+        "tool_responses": tool_responses,
+    }
+
+
+@router.post(
+    "/messages",
+    description="Send a chat message and receive AI nutrition analysis.",
+)
 async def send_message(payload: SendMessageRequest) -> JSONResponse:
-    user_content = payload.text or ""
-    if payload.image_url:
-        user_content = f"{user_content}\nImage URL: {payload.image_url}".strip()
-    elif payload.image_data:
-        user_content = f"{user_content}\n[Image data provided]".strip()
+    """
+    Send a chat message and receive AI response with nutrition analysis.
 
+    Args:
+        payload: Chat message with user profile and content
+
+    Returns:
+        JSONResponse with AI answer, nutrition data, and tools used
+    """
+    text = payload.text or ""
+    image_url = payload.image_url
+    image_data = payload.image_data
     user_id = payload.user_id
+    local_message_id = payload.local_message_id
+
     dietary_preferences = payload.dietary_preferences or []
     allergies = payload.allergies or []
     selected_goals = payload.selected_goals or []
 
-    chat_firestore.add_message(
+    stored_message_id = chat_firestore.add_message(
         user_id=user_id,
-        text=user_content,
+        text=text,
         role="user",
-        sources=None,
+        image_url=image_url,
+        message_id=local_message_id,
+        sources={"image_data": "base64_provided"} if image_data else None,
     )
 
-    history = chat_firestore.get_all_messages_for_context(user_id)
-
-    system_prompt = get_system_prompt(dietary_preferences, allergies, selected_goals)
-
     try:
+        agent_message = build_agent_message(text, image_url, image_data)
+
+        tools = [analyse_image, analyse_food_description]
+        system_prompt = get_system_prompt(dietary_preferences, allergies, selected_goals)
+
         agent = create_agent(
             get_model(),
             tools=tools,
             system_prompt=system_prompt,
         )
 
-        langchain_messages = []
-        for m in history:
-            if m.get("role") == "user":
-                langchain_messages.append(HumanMessage(content=m.get("content", "")))
-            else:
-                langchain_messages.append(AIMessage(content=m.get("content", "")))
-
-        langchain_messages.append(HumanMessage(content=user_content))
-
         result = agent.invoke(
-            {"messages": langchain_messages},
+            {"messages": [HumanMessage(content=agent_message)]},
             config={"recursion_limit": 15},
         )
 
         extracted = extract_final_response(result.get("messages", []))
 
+        ai_answer = extracted["ai_answer"]
         nutrition_data = None
         tools_used = []
+
         if extracted["tool_responses"]:
             first_tool = extracted["tool_responses"][0]
             nutrition_data = first_tool["content"]
             tools_used = [r["name"] for r in extracted["tool_responses"]]
 
-        chat_firestore.add_message(
+            if not ai_answer and nutrition_data:
+                ai_answer = f"I've analyzed your meal. Here's what I found!"
+
+        ai_message_id = chat_firestore.add_message(
             user_id=user_id,
-            text=extracted["ai_answer"],
+            text=ai_answer,
             role="model",
+            image_url=image_url,
             sources={"nutrition_data": nutrition_data, "tools_used": tools_used},
         )
 
         response_data = {
-            "ai_answer": extracted["ai_answer"],
+            "user_message_id": stored_message_id,
+            "ai_answer": ai_answer,
+            "image_url": image_url,
+            "message_id": ai_message_id,
             "nutrition_data": nutrition_data,
             "tools_used": tools_used,
         }
@@ -311,6 +340,7 @@ async def send_message(payload: SendMessageRequest) -> JSONResponse:
             content={
                 "error": "Agent failed",
                 "detail": str(e),
+                "user_message_id": stored_message_id,
                 "ai_answer": "I encountered an issue analyzing your meal. Please try again.",
                 "nutrition_data": None,
                 "tools_used": [],
