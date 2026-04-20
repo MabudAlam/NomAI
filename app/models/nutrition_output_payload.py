@@ -82,7 +82,7 @@ class NutritionResponseModel(BaseModel):
     suggestAlternatives: List[NutritionInfo] = Field(
         default_factory=list, description="Healthier alternative options"
     )
-    overallHealthScore: int = Field(..., description="Overall health score from 0-100")
+    overallHealthScore: int = Field(..., description="Overall health score from 0-10")
     overallHealthComments: str = Field(
         ..., description="Summary health assessment and recommendations"
     )
