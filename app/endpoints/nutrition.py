@@ -1,25 +1,26 @@
+import os
 import time
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from app.models.nutrition_input_payload import NutritionInputPayload
-from app.services.nutrition_service_v2 import NutritionServiceV2
-from app.models.service_response import NutritionServiceResponse, ErrorResponse
+from app.services.nutrition_service_v2 import LLMProviderType, NutritionServiceV2
+from app.models.service_response import NutritionServiceResponse
 from app.exceptions import BaseNomAIException, ValidationException
 from app.utils.error_handler import ErrorHandler
-from app.models.error_models import ErrorCode, ErrorDetail
+from app.models.error_models import ErrorCode
 
 router = APIRouter()
 
 
 @router.post(
-    "/get",
+    "/analyze",
     response_model=NutritionServiceResponse,
-    description="Get nutrition information from an image and user input.",
+    description="Analyze nutrition information from an image and user input.",
 )
-def generate_nutrition_info(query: NutritionInputPayload, request: Request):
+def analyze_nutrition_from_image(query: NutritionInputPayload, request: Request):
     """
-    Generate nutrition information from an image with comprehensive error handling.
+    Analyze nutrition from an image.
 
     Args:
         query: The nutrition query containing image data and user preferences
@@ -37,12 +38,11 @@ def generate_nutrition_info(query: NutritionInputPayload, request: Request):
                 error_code=ErrorCode.MISSING_REQUIRED_FIELD,
                 field="imageUrl",
                 constraint="required",
-                suggestion="Please provide a valid base64 encoded image",
+                suggestion="Please provide a valid image URL",
             )
 
-        response = NutritionServiceV2.get_nutrition_data(
-            query=query,
-        )
+        provider = os.getenv("PROVIDER_TYPE", "gemini").lower()
+        response = NutritionServiceV2.get_nutrition_data(query=query,provider_type=LLMProviderType.GEMINI if provider == "gemini" else LLMProviderType.OPENROUTER)
 
         return JSONResponse(content=response.to_dict(), status_code=response.status)
 
@@ -51,7 +51,6 @@ def generate_nutrition_info(query: NutritionInputPayload, request: Request):
         error_response = ErrorHandler.handle_custom_exception(
             exception=e, request=request, execution_time=execution_time
         )
-
         return JSONResponse(
             status_code=error_response.status_code, content=error_response.to_dict()
         )
@@ -61,28 +60,26 @@ def generate_nutrition_info(query: NutritionInputPayload, request: Request):
         error_response = ErrorHandler.handle_unexpected_exception(
             exception=e,
             request=request,
-            execution_time=execution_time,
             user_message="An unexpected error occurred while processing your nutrition request",
         )
-
         return JSONResponse(
             status_code=error_response.status_code, content=error_response.to_dict()
         )
 
 
 @router.post(
-    "/description",
+    "/analyze-by-description",
     response_model=NutritionServiceResponse,
-    description="Get nutrition information from a description of food items.",
+    description="Analyze nutrition information from a text description of food items.",
 )
-def generate_nutrition_info_from_description(
-    query: NutritionInputPayload, request: Request
-):
+def analyze_nutrition_from_description(query: NutritionInputPayload, request: Request):
     """
-    Generate nutrition information from a description of food items with comprehensive error handling.
+    Analyze nutrition from a text description.
+
     Args:
         query: The nutrition query containing description and user preferences
         request: FastAPI request object for error context
+
     Returns:
         JSONResponse: Structured response with nutrition data or error information
     """
@@ -98,7 +95,8 @@ def generate_nutrition_info_from_description(
                 suggestion="Please provide a valid description of the food items",
             )
 
-        response = NutritionServiceV2.log_food_nutrition_data_using_description(query)
+        provider = os.getenv("PROVIDER_TYPE", "gemini").lower()
+        response = NutritionServiceV2.log_food_nutrition_data_using_description(query, provider_type=LLMProviderType.GEMINI if provider == "gemini" else LLMProviderType.OPENROUTER)
 
         return JSONResponse(content=response.to_dict(), status_code=response.status)
 
@@ -107,7 +105,6 @@ def generate_nutrition_info_from_description(
         error_response = ErrorHandler.handle_custom_exception(
             exception=e, request=request, execution_time=execution_time
         )
-
         return JSONResponse(
             status_code=error_response.status_code, content=error_response.to_dict()
         )
@@ -117,10 +114,8 @@ def generate_nutrition_info_from_description(
         error_response = ErrorHandler.handle_unexpected_exception(
             exception=e,
             request=request,
-            execution_time=execution_time,
             user_message="An unexpected error occurred while processing your nutrition request",
         )
-
         return JSONResponse(
             status_code=error_response.status_code, content=error_response.to_dict()
         )
