@@ -6,7 +6,12 @@ from app.models.nutrition_input_payload import NutritionInputPayload
 from app.models.service_response import NutritionServiceResponse
 from app.services.nutrition_service_v2 import NutritionServiceV2, LLMProviderType
 
-DEFAULT_PROVIDER = os.getenv("PROVIDER_TYPE", "gemini").lower()
+
+def _get_provider_from_env() -> LLMProviderType:
+    provider_env = os.getenv("PROVIDER_TYPE", "")
+    if provider_env.lower() == "openrouter":
+        return LLMProviderType.OPENROUTER
+    return LLMProviderType.GEMINI
 
 
 @tool
@@ -38,7 +43,7 @@ def analyse_image(
             "Either image_url or image_data must be provided for image analysis"
         )
 
-    provider = LLMProviderType.GEMINI if DEFAULT_PROVIDER == "gemini" else LLMProviderType.OPENROUTER
+    provider = _get_provider_from_env()
 
     payload = NutritionInputPayload(
         imageData=image_data,
@@ -80,7 +85,7 @@ def analyse_food_description(
     Returns:
         dict: Structured response with nutrition data
     """
-    provider = LLMProviderType.GEMINI if DEFAULT_PROVIDER == "gemini" else LLMProviderType.OPENROUTER
+    provider = _get_provider_from_env()
 
     payload = NutritionInputPayload(
         food_description=food_description,

@@ -10,20 +10,22 @@ class SearchTerm(BaseModel):
 class EnrichedQuery(BaseModel):
     main_query: str = Field(description="The enriched main food query")
     search_terms: List[SearchTerm] = Field(
-        description="List of individual search terms to look up"
+        description="List of 3 individual search terms to look up",
+        min_length=3,
+        max_length=3,
     )
     context: str = Field(description="Additional context for better analysis")
 
 
-class ExaResult(BaseModel):
+class SearchResult(BaseModel):
     title: str = Field(description="Title of the search result")
     url: str = Field(description="URL of the search result")
     snippet: str = Field(description="Snippet/highlight from the result")
     score: float = Field(description="Relevance score")
 
 
-class ExaSearchResponse(BaseModel):
-    results: List[ExaResult] = Field(description="List of search results")
+class SearchResponse(BaseModel):
+    results: List[SearchResult] = Field(description="List of search results")
     query_used: str = Field(description="The original search query")
 
 

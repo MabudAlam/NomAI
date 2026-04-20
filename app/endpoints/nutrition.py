@@ -42,6 +42,7 @@ def analyze_nutrition_from_image(query: NutritionInputPayload, request: Request)
             )
 
         provider = os.getenv("PROVIDER_TYPE", "gemini").lower()
+
         response = NutritionServiceV2.get_nutrition_data(query=query,provider_type=LLMProviderType.GEMINI if provider == "gemini" else LLMProviderType.OPENROUTER)
 
         return JSONResponse(content=response.to_dict(), status_code=response.status)
