@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NomAI - Diet Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      * { font-family: 'Inter', sans-serif; }
+
+      :root {
+        --dark-primary: #000000;
+        --dark-primary-variant: #B0BEC5;
+        --dark-primary-variant-2: #383838;
+        --dark-secondary: #434343;
+        --dark-secondary-variant: #757575;
+        --dark-success: #00C853;
+        --dark-success-variant: #66BB6A;
+        --dark-info: #2979FF;
+        --dark-info-variant: #80D8FF;
+        --dark-warning: #FFB300;
+        --dark-warning-variant: #FFCC80;
+        --dark-error: #D32F2F;
+        --dark-error-variant: #EF9A9A;
+        --dark-surface: #121212;
+        --dark-background: #1E1E1E;
+        --dark-on-primary: #FFFFFF;
+        --dark-on-secondary: #FFFFFF;
+        --dark-on-success: #000000;
+        --dark-on-info: #000000;
+        --dark-on-warning: #000000;
+        --dark-on-error: #FFFFFF;
+        --dark-on-surface: #FFFFFF;
+        --dark-on-background: #FFFFFF;
+
+        --light-grey-tile: #F9F8FD;
+        --grey-light: #EBEBEB;
+        --selected-tile: #212121;
+        --blue-grey: #514f62;
+        --gauge-color: rgba(128, 128, 128, 0.2);
+        --protein-color: #E91E63;
+        --carbs-color: #558B2F;
+        --fat-color: #2979FF;
+        --fiber-color: #7B1FA2;
+      }
+
+      body {
+        background-color: var(--dark-background);
+        color: var(--dark-on-background);
+        min-height: 100vh;
+      }
+
+      .app-container {
+        background-color: var(--dark-surface);
+        max-width: 5xl;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .header {
+        background-color: var(--dark-surface);
+        border-bottom: 1px solid var(--dark-secondary);
+      }
+
+      .logo {
+        background: linear-gradient(135deg, var(--dark-success) 0%, var(--dark-success-variant) 100%);
+        color: var(--dark-on-success);
+      }
+
+      .text-input {
+        background-color: var(--dark-primary-variant-2);
+        border: 1px solid var(--dark-secondary);
+        color: var(--dark-on-surface);
+      }
+
+      .text-input:focus {
+        border-color: var(--dark-success);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.2);
+      }
+
+      .text-input::placeholder {
+        color: var(--dark-secondary-variant);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--dark-success) 0%, var(--dark-success-variant) 100%);
+        color: var(--dark-on-success);
+      }
+
+      .btn-primary:hover {
+        box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+        transform: scale(1.02);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .chip {
+        border: 1px solid var(--dark-secondary);
+        color: var(--dark-secondary-variant);
+        background-color: transparent;
+        transition: all 0.2s ease;
+      }
+
+      .chip:hover {
+        border-color: var(--dark-success);
+        color: var(--dark-success);
+      }
+
+      .chip-selected {
+        border-color: var(--dark-success) !important;
+        background-color: rgba(0, 200, 83, 0.15) !important;
+        color: var(--dark-success) !important;
+      }
+
+      .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+      .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--dark-secondary); border-radius: 3px; }
+
+      .day-card {
+        border: 1px solid var(--dark-secondary);
+        transition: all 0.2s ease;
+      }
+
+      .day-card:hover {
+        border-color: var(--dark-success);
+      }
+
+      .day-card.active {
+        border-color: var(--dark-success);
+        background-color: rgba(0, 200, 83, 0.05);
+      }
+
+      .meal-card {
+        border: 1px solid var(--dark-secondary);
+        background-color: var(--dark-surface);
+      }
+
+      .meal-header {
+        background-color: var(--dark-primary-variant-2);
+        border-bottom: 1px solid var(--dark-secondary);
+      }
+
+      .macro-pill {
+        border-radius: 9999px;
+        padding: 2px 8px;
+        font-size: 10px;
+        font-weight: 600;
+      }
+
+      .calories-badge {
+        background-color: rgba(41, 121, 255, 0.15);
+        color: var(--dark-info);
+      }
+
+      .protein-badge {
+        background-color: rgba(233, 30, 99, 0.15);
+        color: var(--protein-color);
+      }
+
+      .carbs-badge {
+        background-color: rgba(85, 139, 47, 0.15);
+        color: var(--carbs-color);
+      }
+
+      .fat-badge {
+        background-color: rgba(41, 121, 255, 0.15);
+        color: var(--fat-color);
+      }
+
+      .fiber-badge {
+        background-color: rgba(123, 31, 162, 0.15);
+        color: var(--fiber-color);
+      }
+
+      .health-score {
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      .health-high { background-color: rgba(0, 200, 83, 0.15); color: var(--dark-success); }
+      .health-medium { background-color: rgba(255, 179, 0, 0.15); color: var(--dark-warning); }
+      .health-low { background-color: rgba(211, 47, 47, 0.15); color: var(--dark-error); }
+
+      .loading-spinner {
+        border: 3px solid var(--dark-secondary);
+        border-top: 3px solid var(--dark-success);
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .tab-btn {
+        padding: 8px 16px;
+        border-bottom: 2px solid transparent;
+        color: var(--dark-secondary-variant);
+        transition: all 0.2s;
+      }
+
+      .tab-btn:hover {
+        color: var(--dark-on-surface);
+      }
+
+      .tab-btn.active {
+        border-bottom-color: var(--dark-success);
+        color: var(--dark-success);
+      }
+
+      .alternatives-section {
+        border-top: 1px dashed var(--dark-secondary);
+        padding-top: 8px;
+        margin-top: 8px;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal-content {
+        background-color: var(--dark-surface);
+        border: 1px solid var(--dark-secondary);
+        border-radius: 16px;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        width: 100%;
+      }
+
+      .alternative-card {
+        border: 1px solid var(--dark-secondary);
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .alternative-card:hover {
+        border-color: var(--dark-success);
+        background-color: rgba(0, 200, 83, 0.05);
+      }
+
+      .alternative-card.selected {
+        border-color: var(--dark-success);
+        background-color: rgba(0, 200, 83, 0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex flex-col h-screen max-w-5xl mx-auto app-container">
+
+      <!-- Header -->
+      <header class="flex items-center justify-between px-6 py-4 header">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl logo flex items-center justify-center font-bold text-lg shadow-lg">
+            N
+          </div>
+          <div>
+            <h1 class="text-lg font-bold" style="color: var(--dark-on-surface)">NomAI Diet Planner</h1>
+            <p class="text-xs" style="color: var(--dark-secondary-variant)">Your Weekly Meal Plan</p>
+          </div>
+        </div>
+        <button onclick="goToChat()" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors" style="background-color: var(--dark-secondary); color: var(--dark-on-surface);">
+          Go to Chat
+        </button>
+      </header>
+
+      <!-- Tab Navigation -->
+      <div class="flex border-b" style="border-color: var(--dark-secondary);">
+        <button class="tab-btn active" onclick="switchTab('generate')">Generate Diet</button>
+        <button class="tab-btn" onclick="switchTab('view')">View Diet</button>
+        <button class="tab-btn" onclick="switchTab('history')">History</button>
+      </div>
+
+      <!-- Main Content -->
+      <div id="mainContent" class="flex-1 overflow-y-auto p-6 scrollbar-thin">
+
+        <!-- Generate Tab -->
+        <div id="generateTab">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Left Column: Form -->
+            <div class="space-y-4">
+              <div class="p-4 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <h3 class="font-semibold mb-4" style="color: var(--dark-on-surface)">Daily Nutrition Targets</h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs block mb-1" style="color: var(--dark-secondary-variant)">Calories (kcal)</label>
+                    <input id="calories" type="number" value="2000" class="w-full px-3 py-2 rounded-lg text-sm text-input" />
+                  </div>
+                  <div>
+                    <label class="text-xs block mb-1" style="color: var(--dark-secondary-variant)">Protein (g)</label>
+                    <input id="protein" type="number" value="120" class="w-full px-3 py-2 rounded-lg text-sm text-input" />
+                  </div>
+                  <div>
+                    <label class="text-xs block mb-1" style="color: var(--dark-secondary-variant)">Carbs (g)</label>
+                    <input id="carbs" type="number" value="200" class="w-full px-3 py-2 rounded-lg text-sm text-input" />
+                  </div>
+                  <div>
+                    <label class="text-xs block mb-1" style="color: var(--dark-secondary-variant)">Fat (g)</label>
+                    <input id="fat" type="number" value="65" class="w-full px-3 py-2 rounded-lg text-sm text-input" />
+                  </div>
+                  <div>
+                    <label class="text-xs block mb-1" style="color: var(--dark-secondary-variant)">Fiber (g)</label>
+                    <input id="fiber" type="number" value="30" class="w-full px-3 py-2 rounded-lg text-sm text-input" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <h3 class="font-semibold mb-4" style="color: var(--dark-on-surface)">Dietary Preferences</h3>
+                <div class="flex flex-wrap gap-2" id="dietaryPreferences">
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="vegetarian">Vegetarian</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="vegan">Vegan</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="low-carb">Low Carb</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="high-protein">High Protein</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="keto">Keto</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="gluten-free">Gluten Free</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="paleo">Paleo</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="mediterranean">Mediterranean</button>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <h3 class="font-semibold mb-4" style="color: var(--dark-on-surface)">Allergies</h3>
+                <div class="flex flex-wrap gap-2" id="allergyOptions">
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="nuts">Nuts</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="dairy">Dairy</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="eggs">Eggs</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="soy">Soy</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="wheat">Wheat</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="shellfish">Shellfish</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="peanuts">Peanuts</button>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <h3 class="font-semibold mb-4" style="color: var(--dark-on-surface)">Health Goals</h3>
+                <div class="flex flex-wrap gap-2" id="goalsOptions">
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="weight-loss">Weight Loss</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="muscle-gain">Muscle Gain</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="maintenance">Maintenance</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="energy">Energy Boost</button>
+                  <button class="chip px-3 py-1.5 rounded-full text-xs" data-value="heart-health">Heart Health</button>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <h3 class="font-semibold mb-4" style="color: var(--dark-on-surface)">Disliked Foods</h3>
+                <input id="dislikedFoods" type="text" placeholder="Comma-separated list..." class="w-full px-3 py-2 rounded-lg text-sm text-input" />
+              </div>
+
+              <div class="p-4 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <h3 class="font-semibold mb-4" style="color: var(--dark-on-surface)">Health Conditions</h3>
+                <input id="diseases" type="text" placeholder="e.g., diabetes, hypertension..." class="w-full px-3 py-2 rounded-lg text-sm text-input" />
+              </div>
+
+              <div class="p-4 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <h3 class="font-semibold mb-4" style="color: var(--dark-on-surface)">Additional Instructions</h3>
+                <textarea id="prompt" rows="3" placeholder="Any specific preferences or instructions..." class="w-full px-3 py-2 rounded-lg text-sm text-input resize-none"></textarea>
+              </div>
+
+              <div class="flex gap-3">
+                <input id="userIdInput" type="text" placeholder="User ID" class="flex-1 px-3 py-2 rounded-lg text-sm text-input" />
+                <button id="generateBtn" onclick="generateDiet()" class="btn-primary px-6 py-3 rounded-xl font-semibold text-sm">
+                  Generate Weekly Diet
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column: Preview -->
+            <div id="previewPanel" class="space-y-4">
+              <div class="text-center py-12" style="color: var(--dark-secondary-variant)">
+                <p class="text-sm">Fill in the form and click "Generate Weekly Diet" to preview your meal plan.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View Tab -->
+        <div id="viewTab" class="hidden">
+          <div id="viewContent">
+            <div class="text-center py-12" style="color: var(--dark-secondary-variant)">
+              <p class="text-sm">No active diet found. Generate a diet plan first.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="historyTab" class="hidden">
+          <div id="historyContent">
+            <div class="text-center py-12" style="color: var(--dark-secondary-variant)">
+              <p class="text-sm">Loading history...</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Loading Overlay -->
+      <div id="loadingOverlay" class="hidden fixed inset-0 flex items-center justify-center z-50" style="background-color: rgba(0,0,0,0.7);">
+        <div class="text-center">
+          <div class="loading-spinner mx-auto mb-4"></div>
+          <p class="text-sm" style="color: var(--dark-on-surface)">Generating your weekly diet...</p>
+        </div>
+      </div>
+
+      <!-- Alternatives Modal -->
+      <div id="alternativesModal" class="hidden modal-overlay">
+        <div class="modal-content p-6">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h3 class="text-lg font-semibold" style="color: var(--dark-on-surface)">Choose an Alternative</h3>
+              <p class="text-sm mt-1" style="color: var(--dark-secondary-variant)">Replacing: <span id="currentMealName" class="font-medium"></span></p>
+            </div>
+            <button onclick="closeAlternativesModal()" class="p-2 rounded-lg hover:bg-gray-700">
+              <svg class="w-6 h-6" style="color: var(--dark-secondary-variant)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div id="alternativesList" class="space-y-3"></div>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button onclick="closeAlternativesModal()" class="px-4 py-2 rounded-lg text-sm font-medium" style="background-color: var(--dark-secondary); color: var(--dark-on-surface);">
+              Cancel
+            </button>
+            <button id="applyAlternativeBtn" onclick="applySelectedAlternative()" class="btn-primary px-6 py-2 rounded-lg text-sm font-medium" disabled>
+              Apply Selected
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      const API_BASE = `${window.location.protocol}//${window.location.host}/api/v1/diet`;
+
+      let currentAlternativeContext = {
+        dayIdx: null,
+        mealType: null,
+        alternatives: []
+      };
+
+      function goToChat() {
+        window.location.href = '/';
+      }
+
+      function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+        document.getElementById('generateTab').classList.add('hidden');
+        document.getElementById('viewTab').classList.add('hidden');
+        document.getElementById('historyTab').classList.add('hidden');
+        document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+
+        if (tabName === 'view') loadActiveDiet();
+        if (tabName === 'history') loadHistory();
+      }
+
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => chip.classList.toggle('chip-selected'));
+      });
+
+      function getSelectedChips(groupId) {
+        return Array.from(document.querySelectorAll(`#${groupId} .chip-selected`)).map(c => c.dataset.value);
+      }
+
+      function getUserId() {
+        return document.getElementById('userIdInput').value.trim() || localStorage.getItem('diet_user_id') || 'user_' + Date.now();
+      }
+
+      async function generateDiet() {
+        const userId = getUserId();
+        localStorage.setItem('diet_user_id', userId);
+        document.getElementById('userIdInput').value = userId;
+
+        const input = {
+          userId,
+          calories: parseInt(document.getElementById('calories').value) || 2000,
+          protein: parseInt(document.getElementById('protein').value) || 120,
+          carbs: parseInt(document.getElementById('carbs').value) || 200,
+          fiber: parseInt(document.getElementById('fiber').value) || 30,
+          fat: parseInt(document.getElementById('fat').value) || 65,
+          dietaryPreferences: getSelectedChips('dietaryPreferences'),
+          allergies: getSelectedChips('allergyOptions'),
+          selectedGoals: getSelectedChips('goalsOptions'),
+          dislikedFoods: document.getElementById('dislikedFoods').value.split(',').map(s => s.trim()).filter(Boolean),
+          anyDiseases: document.getElementById('diseases').value.split(',').map(s => s.trim()).filter(Boolean),
+          prompt: document.getElementById('prompt').value
+        };
+
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        document.getElementById('generateBtn').disabled = true;
+
+        try {
+          const res = await fetch(API_BASE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(input)
+          });
+
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+          const data = await res.json();
+          const diet = data.response;
+
+          if (diet) {
+            document.getElementById('previewPanel').innerHTML = renderDietPlan(diet);
+            switchTab('view');
+            document.getElementById('viewContent').innerHTML = renderDietPlan(diet);
+          } else {
+            alert('Failed to generate diet plan');
+          }
+        } catch (err) {
+          alert('Error: ' + err.message);
+        } finally {
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          document.getElementById('generateBtn').disabled = false;
+        }
+      }
+
+      async function loadActiveDiet() {
+        const userId = getUserId();
+        if (!userId) return;
+
+        try {
+          const res = await fetch(`${API_BASE}/${encodeURIComponent(userId)}`);
+          const data = await res.json();
+
+          if (data.response) {
+            const diet = data.response;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const weekEnd = new Date(diet.weekEndDate);
+
+            if (weekEnd < today) {
+              // Diet expired - show banner to start new week
+              document.getElementById('viewContent').innerHTML = `
+                <div class="p-6 rounded-xl text-center" style="background-color: var(--dark-surface); border: 1px solid var(--dark-warning);">
+                  <div class="mb-4">
+                    <svg class="w-16 h-16 mx-auto" style="color: var(--dark-warning)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold mb-2" style="color: var(--dark-on-surface)">Your Week Plan Ended</h3>
+                  <p class="text-sm mb-4" style="color: var(--dark-secondary-variant)">
+                    This diet plan ran from ${diet.weekStartDate} to ${diet.weekEndDate}.
+                  </p>
+                  <div class="flex justify-center gap-3">
+                    <button onclick="switchTab('generate')" class="btn-primary px-6 py-3 rounded-xl font-semibold text-sm">
+                      Start New Week
+                    </button>
+                    <button onclick="switchTab('history')" class="px-4 py-2 rounded-lg text-sm font-medium" style="background-color: var(--dark-secondary); color: var(--dark-on-surface);">
+                      View History
+                    </button>
+                  </div>
+                </div>
+              `;
+            } else {
+              // Diet is active - show it
+              document.getElementById('viewContent').innerHTML = renderDietPlan(diet);
+            }
+          } else {
+            // No diet exists - show create prompt
+            document.getElementById('viewContent').innerHTML = `
+              <div class="p-6 rounded-xl text-center" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <div class="mb-4">
+                  <svg class="w-16 h-16 mx-auto" style="color: var(--dark-secondary-variant)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold mb-2" style="color: var(--dark-on-surface)">Create Your First Diet Plan</h3>
+                <p class="text-sm mb-4" style="color: var(--dark-secondary-variant)">
+                  Start your personalized weekly meal plan today.
+                </p>
+                <button onclick="switchTab('generate')" class="btn-primary px-6 py-3 rounded-xl font-semibold text-sm">
+                  Generate Diet Plan
+                </button>
+              </div>
+            `;
+          }
+        } catch (err) {
+          document.getElementById('viewContent').innerHTML = `<div class="text-center py-12" style="color: var(--dark-error)"><p class="text-sm">Error: ${err.message}</p></div>`;
+        }
+      }
+
+      async function loadHistory() {
+        const userId = getUserId();
+        if (!userId) return;
+
+        try {
+          const res = await fetch(`${API_BASE}/${encodeURIComponent(userId)}/history?limit=10`);
+          const data = await res.json();
+
+          if (data.response && data.response.diets) {
+            document.getElementById('historyContent').innerHTML = data.response.diets.map(d => {
+              const statusClass = d.status === 'active' ? 'style="background-color: rgba(0,200,83,0.15); color: var(--dark-success);"' :
+                                   d.status === 'completed' ? 'style="background-color: rgba(41,121,255,0.15); color: var(--dark-info);"' :
+                                   'style="background-color: rgba(255,179,0,0.15); color: var(--dark-warning);"';
+              return `
+              <div class="p-4 rounded-xl mb-4" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-sm font-medium" style="color: var(--dark-on-surface)">${d.weekStartDate} - ${d.weekEndDate}</span>
+                  <span class="chip px-2 py-1 rounded-full text-xs" ${statusClass}>${d.status}</span>
+                </div>
+                <div class="grid grid-cols-5 gap-2 text-xs">
+                  <div class="text-center">
+                    <p class="macro-label">Calories</p>
+                    <p class="font-bold">${d.totalWeeklyNutrition?.calories || 0}</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="macro-label">Protein</p>
+                    <p class="font-bold">${d.totalWeeklyNutrition?.protein || 0}g</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="macro-label">Carbs</p>
+                    <p class="font-bold">${d.totalWeeklyNutrition?.carbs || 0}g</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="macro-label">Fiber</p>
+                    <p class="font-bold">${d.totalWeeklyNutrition?.fiber || 0}g</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="macro-label">Fat</p>
+                    <p class="font-bold">${d.totalWeeklyNutrition?.fat || 0}g</p>
+                  </div>
+                </div>
+              </div>
+            `}).join('');
+          } else {
+            document.getElementById('historyContent').innerHTML = `<div class="text-center py-12" style="color: var(--dark-secondary-variant)"><p class="text-sm">No diet history found.</p></div>`;
+          }
+        } catch (err) {
+          document.getElementById('historyContent').innerHTML = `<div class="text-center py-12" style="color: var(--dark-error)"><p class="text-sm">Error: ${err.message}</p></div>`;
+        }
+      }
+
+      function renderDietPlan(diet) {
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        return `
+          <div class="space-y-4">
+            <div class="p-4 rounded-xl flex justify-between items-center" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+              <div>
+                <h3 class="font-semibold" style="color: var(--dark-on-surface)">Week: ${diet.weekStartDate} - ${diet.weekEndDate}</h3>
+                <p class="text-xs mt-1" style="color: var(--dark-secondary-variant)">Status: ${diet.status}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs" style="color: var(--dark-secondary-variant)">Weekly Total</p>
+                <p class="font-bold" style="color: var(--dark-info)">${diet.totalWeeklyNutrition?.calories || 0} kcal</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-7 gap-2">
+              ${(diet.dailyDiets || []).map((day, idx) => `
+                <button onclick="showDay(${idx})" class="day-card p-3 rounded-xl text-center ${idx === 0 ? 'active' : ''}" style="background-color: var(--dark-surface);">
+                  <p class="text-xs font-medium" style="color: var(--dark-on-surface)">${day.dayName || dayNames[idx]}</p>
+                  <p class="text-[10px] mt-1" style="color: var(--dark-secondary-variant)">${day.totalNutrition?.calories || 0} kcal</p>
+                </button>
+              `).join('')}
+            </div>
+
+            <div id="dayDetail">
+              ${diet.dailyDiets?.[0] ? renderDayDetail(diet.dailyDiets[0], 0) : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      function showDay(idx) {
+        document.querySelectorAll('.day-card').forEach((card, i) => {
+          card.classList.toggle('active', i === idx);
+        });
+
+        const userId = getUserId();
+        fetch(`${API_BASE}/${encodeURIComponent(userId)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.response && data.response.dailyDiets) {
+              document.getElementById('dayDetail').innerHTML = renderDayDetail(data.response.dailyDiets[idx], idx);
+            }
+          });
+      }
+
+      function renderDayDetail(day, dayIdx) {
+        const meals = day.meals || {};
+
+        return `
+          <div class="space-y-3">
+            <h4 class="font-semibold" style="color: var(--dark-on-surface)">${day.dayName} - Nutrition Breakdown</h4>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div class="text-center p-3 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <p class="text-xs mb-1" style="color: var(--dark-secondary-variant)">Calories</p>
+                <p class="font-bold text-lg" style="color: var(--dark-info)">${day.totalNutrition?.calories || 0}</p>
+                <p class="text-[10px]" style="color: var(--dark-secondary-variant)">kcal</p>
+              </div>
+              <div class="text-center p-3 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <p class="text-xs mb-1" style="color: var(--dark-secondary-variant)">Protein</p>
+                <p class="font-bold text-lg" style="color: var(--protein-color)">${day.totalNutrition?.protein || 0}g</p>
+              </div>
+              <div class="text-center p-3 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <p class="text-xs mb-1" style="color: var(--dark-secondary-variant)">Carbs</p>
+                <p class="font-bold text-lg" style="color: var(--carbs-color)">${day.totalNutrition?.carbs || 0}g</p>
+              </div>
+              <div class="text-center p-3 rounded-xl" style="background-color: var(--dark-surface); border: 1px solid var(--dark-secondary);">
+                <p class="text-xs mb-1" style="color: var(--dark-secondary-variant)">Fat</p>
+                <p class="font-bold text-lg" style="color: var(--fat-color)">${day.totalNutrition?.fat || 0}g</p>
+              </div>
+            </div>
+
+            ${meals.breakfast ? renderMealCard('Breakfast', meals.breakfast, dayIdx) : ''}
+            ${meals.lunch ? renderMealCard('Lunch', meals.lunch, dayIdx) : ''}
+            ${meals.dinner ? renderMealCard('Dinner', meals.dinner, dayIdx) : ''}
+            ${(meals.snacks || []).length > 0 ? meals.snacks.map((snack, i) => renderMealCard(`Snack ${i + 1}`, snack, dayIdx)).join('') : ''}
+          </div>
+        `;
+      }
+
+      function renderMealCard(mealType, meal, dayIdx = 0) {
+        const score = meal.overallHealthScore || 0;
+        const scoreClass = score >= 7 ? 'health-high' : score >= 4 ? 'health-medium' : 'health-low';
+
+        const totalCals = (meal.ingredients || []).reduce((s, i) => s + (i.calories || 0), 0);
+        const totalProtein = (meal.ingredients || []).reduce((s, i) => s + (i.protein || 0), 0);
+        const totalCarbs = (meal.ingredients || []).reduce((s, i) => s + (i.carbs || 0), 0);
+        const totalFat = (meal.ingredients || []).reduce((s, i) => s + (i.fat || 0), 0);
+
+        return `
+          <div class="meal-card rounded-xl overflow-hidden">
+            <div class="meal-header px-4 py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="health-score ${scoreClass}">${score}</div>
+                <div>
+                  <p class="font-semibold text-sm" style="color: var(--dark-on-surface)">${mealType}</p>
+                  <p class="text-xs" style="color: var(--dark-secondary-variant)">${meal.foodName || 'Unknown'}</p>
+                </div>
+              </div>
+              <div class="flex gap-2 items-center">
+                <span class="macro-pill calories-badge">${totalCals} cal</span>
+                <span class="macro-pill protein-badge">${totalProtein}g P</span>
+                <span class="macro-pill carbs-badge">${totalCarbs}g C</span>
+                <span class="macro-pill fat-badge">${totalFat}g F</span>
+                <button onclick="requestAlternative('${mealType}', ${dayIdx})" class="ml-2 px-3 py-1 rounded-lg text-xs font-medium" style="background-color: var(--dark-secondary); color: var(--dark-on-surface);">
+                  Suggest Alternative
+                </button>
+              </div>
+            </div>
+
+            ${meal.ingredients?.length > 0 ? `
+              <div class="px-4 py-2">
+                <p class="text-xs mb-2" style="color: var(--dark-secondary-variant)">Ingredients</p>
+                <div class="space-y-1">
+                  ${meal.ingredients.map(ing => `
+                    <div class="flex justify-between text-xs">
+                      <span style="color: var(--dark-on-surface)">${ing.name}</span>
+                      <span style="color: var(--dark-secondary-variant)">${ing.calories} cal • ${ing.protein}g P • ${ing.carbs}g C • ${ing.fat}g F</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            ${meal.overallHealthComments ? `
+              <div class="px-4 py-2 border-t" style="border-color: var(--dark-secondary);">
+                <p class="text-xs italic" style="color: var(--dark-secondary-variant)">${meal.overallHealthComments}</p>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      function requestAlternative(mealType, dayIdx) {
+        const userId = getUserId();
+        fetch(`${API_BASE}/${encodeURIComponent(userId)}`)
+          .then(res => res.json())
+          .then(async data => {
+            if (data.response && data.response.dailyDiets) {
+              const day = data.response.dailyDiets[dayIdx];
+              const meals = day.meals || {};
+              let currentMeal = null;
+
+              if (mealType.toLowerCase() === 'breakfast') currentMeal = meals.breakfast;
+              else if (mealType.toLowerCase() === 'lunch') currentMeal = meals.lunch;
+              else if (mealType.toLowerCase() === 'dinner') currentMeal = meals.dinner;
+              else if (mealType.toLowerCase().startsWith('snack')) {
+                const snackIdx = parseInt(mealType.replace('snack ', '')) - 1;
+                currentMeal = meals.snacks?.[snackIdx];
+              }
+
+              if (!currentMeal) {
+                alert('Could not find the current meal');
+                return;
+              }
+
+              const prompt = promptUserForAlternative();
+              if (!prompt) return;
+
+              document.getElementById('loadingOverlay').classList.remove('hidden');
+              document.getElementById('loadingOverlay').querySelector('p').textContent = 'Finding alternatives...';
+
+              try {
+                const response = await fetch(`${API_BASE}/${encodeURIComponent(userId)}/suggest-alternatives`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    currentMeal: currentMeal,
+                    mealType: mealType.toLowerCase(),
+                    prompt: prompt,
+                    dietaryPreferences: [],
+                    allergies: [],
+                    dislikedFoods: [],
+                    anyDiseases: [],
+                    selectedGoals: []
+                  })
+                });
+
+                const result = await response.json();
+
+                if (result.response && result.response.alternatives) {
+                  currentAlternativeContext = {
+                    dayIdx: dayIdx,
+                    mealType: mealType.toLowerCase(),
+                    alternatives: result.response.alternatives,
+                    currentMeal: currentMeal
+                  };
+
+                  document.getElementById('currentMealName').textContent = currentMeal.foodName;
+                  document.getElementById('alternativesList').innerHTML = result.response.alternatives.map((alt, idx) => `
+                    <div class="alternative-card ${idx === 0 ? 'selected' : ''}" onclick="selectAlternative(${idx})">
+                      <div class="flex justify-between items-start mb-2">
+                        <div>
+                          <p class="font-medium text-sm" style="color: var(--dark-on-surface)">${alt.foodName}</p>
+                          <p class="text-xs mt-1" style="color: var(--dark-secondary-variant)">
+                            ${alt.overallHealthComments || ''}
+                          </p>
+                        </div>
+                        <div class="health-score ${alt.overallHealthScore >= 7 ? 'health-high' : alt.overallHealthScore >= 4 ? 'health-medium' : 'health-low'}">
+                          ${alt.overallHealthScore || 0}
+                        </div>
+                      </div>
+                      <div class="flex gap-2 flex-wrap">
+                        <span class="macro-pill calories-badge">${(alt.ingredients || []).reduce((s, i) => s + (i.calories || 0), 0)} cal</span>
+                        <span class="macro-pill protein-badge">${(alt.ingredients || []).reduce((s, i) => s + (i.protein || 0), 0)}g P</span>
+                        <span class="macro-pill carbs-badge">${(alt.ingredients || []).reduce((s, i) => s + (i.carbs || 0), 0)}g C</span>
+                        <span class="macro-pill fat-badge">${(alt.ingredients || []).reduce((s, i) => s + (i.fat || 0), 0)}g F</span>
+                      </div>
+                    </div>
+                  `).join('');
+
+                  document.getElementById('alternativesModal').classList.remove('hidden');
+                  document.getElementById('applyAlternativeBtn').disabled = false;
+                } else {
+                  alert('No alternatives found');
+                }
+              } catch (err) {
+                alert('Error: ' + err.message);
+              } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('loadingOverlay').querySelector('p').textContent = 'Generating your weekly diet...';
+              }
+            }
+          });
+      }
+
+      function promptUserForAlternative() {
+        return prompt('What would you like instead? (e.g., "Something with fish", "Vegetarian option", "Lower calories")');
+      }
+
+      function selectAlternative(idx) {
+        document.querySelectorAll('.alternative-card').forEach((card, i) => {
+          card.classList.toggle('selected', i === idx);
+        });
+        currentAlternativeContext.selectedIdx = idx;
+      }
+
+      async function applySelectedAlternative() {
+        if (currentAlternativeContext.selectedIdx === undefined) {
+          alert('Please select an alternative');
+          return;
+        }
+
+        const selectedMeal = currentAlternativeContext.alternatives[currentAlternativeContext.selectedIdx];
+        const userId = getUserId();
+        const { dayIdx, mealType } = currentAlternativeContext;
+
+        closeAlternativesModal();
+
+        try {
+          const response = await fetch(`${API_BASE}/${encodeURIComponent(userId)}/${dayIdx}/meals/${mealType}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(selectedMeal)
+          });
+
+          if (response.ok) {
+            showDay(dayIdx);
+          } else {
+            alert('Failed to update meal');
+          }
+        } catch (err) {
+          alert('Error: ' + err.message);
+        }
+      }
+
+      function closeAlternativesModal() {
+        document.getElementById('alternativesModal').classList.add('hidden');
+        currentAlternativeContext = { dayIdx: null, mealType: null, alternatives: [] };
+      }
+
+      document.getElementById('userIdInput').value = localStorage.getItem('diet_user_id') || '';
+    </script>
+  </body>
+</html>
