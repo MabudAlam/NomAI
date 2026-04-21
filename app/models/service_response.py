@@ -21,8 +21,8 @@ class ServiceMetadata(BaseModel):
 class NutritionServiceResponse(BaseModel):
     """Standardized response model for nutrition service operations"""
 
-    response: Optional[NutritionResponseModel] = Field(
-        None, description="The nutrition analysis response"
+    response: Optional[Any] = Field(
+        None, description="The nutrition analysis response or diet data"
     )
     status: int = Field(..., description="HTTP status code")
     message: str = Field(..., description="Response message")
