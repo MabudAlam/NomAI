@@ -89,6 +89,7 @@ class DietFirestore:
         diet_id = f"diet_{uuid.uuid4().hex[:12]}"
         now = datetime.now(timezone.utc)
 
+        diet.dietId = diet_id
         if diet.createdAt is None:
             diet.createdAt = now.isoformat()
         diet.updatedAt = now.isoformat()
@@ -204,10 +205,10 @@ class DietFirestore:
 
     def get_history(
         self, user_id: str, limit: int = 10, offset: int = 0
-    ) -> tuple[List[WeeklyDietOutput], int]:
+    ) -> tuple[List[tuple[str, WeeklyDietOutput]], int]:
         """
         Get diet history for a user with pagination.
-        Only returns diets with status "completed".
+        Returns all diets regardless of status.
 
         Args:
             user_id: The user ID
@@ -215,7 +216,7 @@ class DietFirestore:
             offset: Number of diets to skip
 
         Returns:
-            Tuple of (diets list, total count)
+            Tuple of (list of (diet_id, WeeklyDietOutput) tuples, total count)
         """
         db = self._get_db()
 
@@ -223,7 +224,6 @@ class DietFirestore:
             db.collection("users")
             .document(user_id)
             .collection("diet")
-            .where("status", "==", "completed")
             .order_by("createdAt", direction=firestore.Query.DESCENDING)
         )
 
@@ -233,7 +233,7 @@ class DietFirestore:
         diets = []
         for doc in docs:
             doc_dict = doc.to_dict()
-            diets.append(self._dict_to_weekly_diet(doc_dict))
+            diets.append((doc.id, self._dict_to_weekly_diet(doc_dict)))
 
         return diets, total
 

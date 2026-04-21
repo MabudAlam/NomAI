@@ -64,11 +64,12 @@ def get_diet_history(
         offset: Number of diets to skip
 
     Returns:
-        NutritionServiceResponse containing list of past WeeklyDietOutput
+        NutritionServiceResponse containing list of past WeeklyDietOutput with diet IDs
     """
     diets, total = DietService.get_diet_history(user_id, limit, offset)
+    diet_list = [diet.model_dump() for diet_id, diet in diets]
     return NutritionServiceResponse(
-        response={"diets": diets, "total": total, "limit": limit, "offset": offset},
+        response={"diets": diet_list, "total": total, "limit": limit, "offset": offset},
         status=200,
         message="SUCCESS",
         metadata=None,

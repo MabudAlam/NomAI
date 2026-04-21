@@ -66,6 +66,7 @@ class DailyDietEntry(BaseModel):
 
 
 class WeeklyDietOutput(BaseModel):
+    dietId: Optional[str] = Field(None, description="Diet document ID (auto-generated)")
     userId: str = Field(..., description="User identifier")
     weekStartDate: str = Field(..., description="Week start date")
     weekEndDate: str = Field(..., description="Week end date")

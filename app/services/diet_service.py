@@ -109,7 +109,8 @@ class DietService:
             totalWeeklyNutrition=total_weekly,
         )
 
-        diet_firestore.save(weekly_diet)
+        diet_id = diet_firestore.save(weekly_diet)
+        weekly_diet.dietId = diet_id
 
         execution_time = time.time() - start_time
 
@@ -135,13 +136,14 @@ class DietService:
         result = diet_firestore.get_active(user_id)
         if result is None:
             return None
-        _, diet = result
+        diet_id, diet = result
+        diet.dietId = diet_id
         return diet
 
     @classmethod
     def get_diet_history(
         cls, user_id: str, limit: int = 10, offset: int = 0
-    ) -> Tuple[list, int]:
+    ) -> Tuple[List[tuple], int]:
         """
         Get diet history for a user.
 
@@ -151,7 +153,7 @@ class DietService:
             offset: Number of diets to skip
 
         Returns:
-            Tuple of (diets list, total count)
+            Tuple of (list of (diet_id, WeeklyDietOutput) tuples, total count)
         """
         return diet_firestore.get_history(user_id, limit, offset)
 
@@ -198,7 +200,8 @@ class DietService:
             totalWeeklyNutrition=old_diet.totalWeeklyNutrition,
         )
 
-        diet_firestore.save(new_diet)
+        new_diet_id = diet_firestore.save(new_diet)
+        new_diet.dietId = new_diet_id
 
         execution_time = time.time() - start_time
 
