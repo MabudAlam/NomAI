@@ -6,16 +6,15 @@ Document structure:
 - Document: WeeklyDietOutput as dict
 """
 
-import os
 import uuid
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 
-import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import firestore
 
 from app.models.diet_model import WeeklyDietOutput
+from app.utils.firebase_utils import get_firestore
 
 
 @dataclass
@@ -36,15 +35,7 @@ class DietFirestore:
         if self._initialized:
             return
 
-        cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
-        if not cred_path:
-            raise ValueError("FIREBASE_CREDENTIALS_PATH environment variable is required")
-
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(cred_path)
-            firebase_admin.initialize_app(cred)
-
-        self._db = firestore.client(database_id="mealai")
+        self._db = get_firestore()
         self._initialized = True
 
     @classmethod
@@ -135,16 +126,20 @@ class DietFirestore:
         updates["updatedAt"] = datetime.now(timezone.utc)
 
         clean_updates = {}
-        for key, value in updates.items():
+
+        def process_value(value):
             if hasattr(value, 'model_dump'):
-                clean_updates[key] = value.model_dump()
+                return value.model_dump()
             elif isinstance(value, list):
-                clean_updates[key] = [
-                    item.model_dump() if hasattr(item, 'model_dump') else item
-                    for item in value
-                ]
+                result = []
+                for item in value:
+                    result.append(process_value(item))
+                return result
             else:
-                clean_updates[key] = value
+                return value
+
+        for key, value in updates.items():
+            clean_updates[key] = process_value(value)
 
         doc_ref = db.collection("users").document(user_id).collection("diet").document(diet_id)
         doc_ref.update(clean_updates)

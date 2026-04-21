@@ -295,6 +295,60 @@ class DietService:
             else:
                 snacks.append(new_meal)
             updated_meals.snacks = snacks
+        elif meal_type == "cheatMeal":
+            daily_diet.cheatMealOfTheDay = new_meal
+            daily_diet.meals = updated_meals
+            return diet_firestore.update(user_id, diet_id, {"dailyDiets": active_diet.dailyDiets})
+
+        daily_diet.meals = updated_meals
+
+        return diet_firestore.update(user_id, diet_id, {"dailyDiets": active_diet.dailyDiets})
+
+    @classmethod
+    def mark_meal_eaten(
+        cls,
+        user_id: str,
+        day_index: int,
+        meal_type: str,
+        is_eaten: bool,
+    ) -> bool:
+        """
+        Mark a specific meal as eaten or not eaten.
+
+        Args:
+            user_id: The user ID
+            day_index: Day index (0-6)
+            meal_type: Type of meal (breakfast, lunch, dinner, snack)
+            is_eaten: Whether the meal has been eaten
+
+        Returns:
+            True if updated successfully
+        """
+        result = diet_firestore.get_active(user_id)
+        if not result:
+            return False
+
+        diet_id, active_diet = result
+
+        daily_diet = active_diet.dailyDiets[day_index]
+        updated_meals = daily_diet.meals.model_copy()
+
+        if meal_type == "breakfast":
+            updated_meals.breakfast.isEaten = is_eaten
+        elif meal_type == "lunch":
+            updated_meals.lunch.isEaten = is_eaten
+        elif meal_type == "dinner":
+            updated_meals.dinner.isEaten = is_eaten
+        elif meal_type == "snacks":
+            snacks = list(updated_meals.snacks)
+            for snack in snacks:
+                snack.isEaten = is_eaten
+            updated_meals.snacks = snacks
+        elif meal_type == "cheatMeal":
+            if daily_diet.cheatMealOfTheDay:
+                daily_diet.cheatMealOfTheDay.isEaten = is_eaten
+            daily_diet.meals = updated_meals
+            return diet_firestore.update(user_id, diet_id, {"dailyDiets": active_diet.dailyDiets})
 
         daily_diet.meals = updated_meals
 

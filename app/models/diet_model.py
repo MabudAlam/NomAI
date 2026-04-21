@@ -142,6 +142,13 @@ class SuggestAlternateRequest(BaseModel):
     )
 
 
+class MarkMealEatenRequest(BaseModel):
+    """Request model for marking a meal as eaten."""
+    day_index: int = Field(..., ge=0, le=6, description="Day index (0-6)")
+    meal_type: str = Field(..., description="Type of meal: breakfast, lunch, dinner, snack")
+    is_eaten: bool = Field(..., description="Whether the meal has been eaten")
+
+
 class GroceryListItem(BaseModel):
     name: str = Field(..., description="Name of the grocery item")
     quantity: str = Field(..., description="Quantity needed")

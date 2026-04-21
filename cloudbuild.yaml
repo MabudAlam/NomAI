@@ -1,0 +1,43 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    env:
+      - "DOCKER_BUILDKIT=1"
+    args:
+      [
+        "build",
+        "--no-cache",
+        "-t",
+        "us-central1-docker.pkg.dev/mealai-f58b5/nomai/nomai-service:latest",
+        "-f",
+        "infra/docker/Dockerfile.api",
+        ".",
+      ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "us-central1-docker.pkg.dev/mealai-f58b5/nomai/nomai-service:latest",
+      ]
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      [
+        "run",
+        "deploy",
+        "nomai-service",
+        "--image",
+        "us-central1-docker.pkg.dev/mealai-f58b5/nomai/nomai-service:latest",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+      ]
+
+images:
+  - "us-central1-docker.pkg.dev/mealai-f58b5/nomai/nomai-service:latest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY

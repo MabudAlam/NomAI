@@ -16,16 +16,15 @@ Document structure:
   }
 """
 
-import os
 import uuid
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 
-import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import firestore
 
 from app.models.chat_models import ChatMessage
+from app.utils.firebase_utils import get_firestore
 
 
 MAX_MESSAGES = 50
@@ -50,17 +49,7 @@ class ChatFirestore:
         if self._initialized:
             return
 
-        cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
-        if not cred_path:
-            raise ValueError(
-                "FIREBASE_CREDENTIALS_PATH environment variable is required"
-            )
-
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(cred_path)
-            firebase_admin.initialize_app(cred)
-
-        self._db = firestore.client(database_id="mealai")
+        self._db = get_firestore()
         self._initialized = True
 
     @classmethod

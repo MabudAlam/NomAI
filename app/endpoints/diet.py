@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 
-from app.models.diet_model import DietInput, SuggestAlternateRequest, NutritionResponseModel
+from app.models.diet_model import DietInput, SuggestAlternateRequest, NutritionResponseModel, MarkMealEatenRequest
 from app.models.service_response import NutritionServiceResponse
 from app.services.diet_service import DietService
 
@@ -114,6 +114,39 @@ def update_meal(
         NutritionServiceResponse with success status
     """
     success = DietService.update_meal(user_id, day_index, meal_type, new_meal)
+    if not success:
+        return NutritionServiceResponse(
+            response=None,
+            status=404,
+            message="Failed to update meal. No active diet found.",
+            metadata=None,
+        )
+    return NutritionServiceResponse(
+        response={"updated": True},
+        status=200,
+        message="SUCCESS",
+        metadata=None,
+    )
+
+
+@router.patch("/{user_id}/meals/eaten", response_model=NutritionServiceResponse)
+def mark_meal_eaten(
+    user_id: str,
+    request: MarkMealEatenRequest,
+) -> NutritionServiceResponse:
+    """
+    Mark a specific meal as eaten or not eaten.
+
+    Args:
+        user_id: The user ID
+        request: Contains day_index, meal_type, and is_eaten flag
+
+    Returns:
+        NutritionServiceResponse with success status
+    """
+    success = DietService.mark_meal_eaten(
+        user_id, request.day_index, request.meal_type, request.is_eaten
+    )
     if not success:
         return NutritionServiceResponse(
             response=None,

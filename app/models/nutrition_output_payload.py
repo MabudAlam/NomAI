@@ -86,6 +86,9 @@ class NutritionResponseModel(BaseModel):
     overallHealthComments: str = Field(
         ..., description="Summary health assessment and recommendations"
     )
+    isEaten: bool = Field(
+        default=False, description="Whether the meal has been eaten"
+    )
 
     class Config:
         use_enum_values = True  # Serialize enum values instead of enum objects
