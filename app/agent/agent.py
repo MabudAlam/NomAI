@@ -35,7 +35,7 @@ def get_model() -> Any:
     if provider_type == "gemini":
         if _model is None:
             _model = init_chat_model(
-                model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+                model=os.getenv("AGENT_MODEL", "gemini-2.0-flash"),
                 model_provider="google_genai",
                 google_api_key=os.getenv("GOOGLE_API_KEY"),
             )
@@ -43,7 +43,7 @@ def get_model() -> Any:
     else:
         if _model2 is None:
             _model2 = ChatOpenRouter(
-                model=os.getenv("OPENROUTER_MODEL", "anthropic/claude-sonnet-4"),
+                model=os.getenv("AGENT_MODEL", "openai/gpt-4o-mini"),
                 api_key=os.getenv("OPENROUTER_API_KEY"),
             )
         return _model2

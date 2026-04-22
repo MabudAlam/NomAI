@@ -16,6 +16,7 @@ Analyze food, chat with AI, plan weekly diets, and receive real-time nutrition i
 [![Firebase](https://img.shields.io/badge/Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Exa](https://img.shields.io/badge/Exa_AI-6D28D9?style=for-the-badge&logo=target&logoColor=white)](https://exa.ai/)
 [![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-DE5833?style=for-the-badge&logo=duckduckgo&logoColor=white)](https://duckduckgo.com/)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/ACNcz0?referralCode=jEIluR&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
 </div>
 
@@ -39,6 +40,8 @@ NomAI is a powerful AI Agent that brings nutrition and food intelligence to life
 | 🔗 **Dual LLM Support** | Seamlessly switch between Google Gemini and OpenRouter (Claude) providers |
 | 🌐 **Web-Grounded Analysis** | Nutrition data enriched with web search results from Exa or DuckDuckGo |
 | 🛢️ **Firestore Persistence** | Chat history and diet plans stored in Google Firestore |
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/ACNcz0?referralCode=jEIluR&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
 ---
 
@@ -152,40 +155,81 @@ NomAI maintains a **Message State** that evolves during a single request:
 
 ---
 
-## 🚀 Deployment Architecture
+## 🚀 Deployment
+
+NomAI supports **two easy deployment options**: **Google Cloud Platform (GCP)** or **Railway**.
+
+### ☁️ Option 1: GCP (Cloud Run)
 
 NomAI is architected for the cloud, utilizing a fully automated CI/CD pipeline on **Google Cloud Platform (GCP)**.
 
 ```mermaid
 graph LR
     Dev["💻 Developer\nPush to GitHub"] --> CB["⚙️ Google Cloud Build"]
-    
+
     subgraph "CI/CD Pipeline"
         CB --> Build["🐳 Docker Build\n(Dockerfile.api)"]
         Build --> AR["📦 Artifact Registry\n(Docker Image)"]
         AR --> Deploy["🚀 Cloud Run\n(Managed Serverless)"]
     end
-    
+
     Deploy --> Public["🌐 Public API Endpoints\n(https://nomai-service-...)"]
-    
+
     subgraph "Infrastructure"
         Firebase["🔥 Firestore\n(NoSQL DB)"]
         Secret["🔒 Secret Manager\n(API Keys)"]
     end
-    
+
     Deploy -.-> Firebase
     Deploy -.-> Secret
 ```
 
+### 🚂 Option 2: Railway (One-Click Template)
+
+One-click deployment to Railway with built-in environment variable management and template setup.
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/ACNcz0?referralCode=jEIluR&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
+#### 🚂 One-Click Railway Template Deployment
+
+1. **Click the button above** — This opens Railway with the NomAI template pre-loaded
+2. **Connect your GitHub** repository to enable automatic deployments
+3. **Configure Environment Variables** in the Railway dashboard:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `FIREBASE_CREDENTIALS_JSON` | Full Firebase service account JSON string | ⬜|
+| `GOOGLE_API_KEY` | Google Gemini API key (If openrouter is used then can skip this ) | ✅ |
+| `EXA_API_KEY` | Exa search API key (optional if not using DuckDuckGo) | ⬜ |
+| `SEARCH_PROVIDER` | `exa` or `duckduckgo` |✅ |
+| `PROVIDER_TYPE` | `gemini` or `openrouter` | ✅ |
+| `GEMINI_MODEL` | Gemini model name (auto-switches when `PROVIDER_TYPE=gemini`) | ⬜ |
+| `OPENROUTER_MODEL` | OpenRouter model name (auto-switches when `PROVIDER_TYPE=openrouter`) | ⬜ |
+| `OPENROUTER_API_KEY` | OpenRouter API key (if using openrouter) | ⬜ |
+| `AGENT_MODEL` | Agent model for LangChain if provider is gemini then put gemini model else openrouter model (default: `openai/gpt-4o-mini`) |✅ |
+
+> **Model Auto-Switching**: When `PROVIDER_TYPE=gemini`, the system uses `GEMINI_MODEL` (default: `gemini-2.0-flash`). When `PROVIDER_TYPE=openrouter`, it uses `OPENROUTER_MODEL` (default: `google/gemini-3.1-flash-lite-preview`).
+
+
+The Firebase Credentials are loaded 3 ways , on the local machine via direct service.json file , on the GCP it does n't require service.json file , on non Google provider like railway , we load the service.json file via key FIREBASE_CREDENTIALS_JSON. 
+
+4. **Deploy** — Railway auto-detects Python, installs dependencies via `uv`, and starts `uvicorn main:app`
+5. **Custom Domain** (optional) — Add a custom domain in Railway service settings
+
+#### Railway Features
+- ✅ Automatic HTTPS/SSL
+- ✅ GitHub integration for auto-deploy on push
+- ✅ Environment variable management
+- ✅ Built-in logs and monitoring
+- ✅ Free tier available
+
 ### Production Stack
 -   **Containerization**: `uv`-optimized Python 3.13 slim image for fast builds and minimal footprint.
--   **Orchestration**: Managed via `cloudbuild.yaml` in `infra/cloudbuild/`.
--   **Hosting**: **Google Cloud Run** for autoscaling serverless execution.
--   **Registry**: **Google Artifact Registry** for secure container storage.
+-   **Orchestration**: Managed via `cloudbuild.yaml` in `infra/cloudbuild/` (GCP).
+-   **Hosting**: **Google Cloud Run** for autoscaling serverless execution (GCP) or **Railway** for managed deployment.
+-   **Registry**: **Google Artifact Registry** for secure container storage (GCP).
 
 ---
-
-## 🧪 Nutrition Analysis Pipeline
 
 NomAI uses a sophisticated **3-step pipeline** for accurate, web-grounded nutrition analysis:
 
@@ -365,12 +409,14 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 | `PROD` | Production mode toggle | `false` |
 | `PROVIDER_TYPE` | LLM provider (`gemini` / `openrouter`) | `gemini` |
 | `GOOGLE_API_KEY` | Google Gemini API key | — |
-| `GEMINI_MODEL` | Gemini model name | `gemini-2.0-flash` |
+| `GEMINI_MODEL` | Gemini model name (auto-used when `PROVIDER_TYPE=gemini`) | `gemini-2.0-flash` |
 | `OPENROUTER_API_KEY` | OpenRouter API key | — |
-| `OPENROUTER_MODEL` | OpenRouter model | `anthropic/claude-sonnet-4` |
+| `OPENROUTER_MODEL` | OpenRouter model (auto-used when `PROVIDER_TYPE=openrouter`) | `google/gemini-3.1-flash-lite-preview` |
+| `AGENT_MODEL` | Agent model for LangChain | `openai/gpt-4o-mini` |
 | `SEARCH_PROVIDER` | Search backend (`exa` / `duckduckgo`) | `exa` |
 | `EXA_API_KEY` | Exa search API key | — |
 | `FIREBASE_CREDENTIALS_PATH` | Firebase service account JSON path | — |
+| `FIREBASE_CREDENTIALS_JSON` | Firebase service account JSON string (for Railway) | — |
 | `FIRESTORE_DATABASE_ID` | Firestore database ID | `mealai` |
 | `DEBUG_MODE` | Enable pipeline debug logging | `false` |
 | `HOST` / `PORT` | Server bind address | `0.0.0.0` / `8000` |
