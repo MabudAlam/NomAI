@@ -22,7 +22,7 @@ def initialize_firebase() -> firestore.Client:
         firebase_admin.initialize_app(cred)
     else:
         credentials_anon, _ = google.auth.default()
-        firebase_admin.initialize_app(credentials=credentials_anon)
+        firebase_admin.initialize_app()
 
     return firestore.client(database_id=DATABASE_ID)
 
